@@ -13,6 +13,16 @@ export const useVentaStore = defineStore("Venta", () => {
             return error;
         }
     };
+    let getInventario = async () => {
+        try {
+            let res = await axios.get("http://localhost:4600/api/inventario");
+            console.log(res);
+            return res.data;
+        } catch (error) {
+            console.log(error);
+            return error;
+        }
+    };
     let agregarVenta = async (venta) => {
         try {
             const res = await axios.post("http://localhost:4600/api/venta",venta);
@@ -37,6 +47,6 @@ export const useVentaStore = defineStore("Venta", () => {
     };
     
     return {
-        getVenta,agregarVenta,actualizarVenta
+        getVenta,agregarVenta,actualizarVenta,getInventario
     };
 });

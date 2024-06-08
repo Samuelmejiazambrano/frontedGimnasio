@@ -52,7 +52,7 @@ const routes = [
     { path: "/compras", component: Compras, beforeEnter:auth, meta: { rol: ['admin', 'instructor'] } },
     { path: "/ventas", component: Ventas, beforeEnter:auth, meta: { rol: ['admin', 'instructor'] } },
     { path: "/cliente", component: Cliente, beforeEnter: auth, meta: { rol: ['admin', 'recepcionista'] } },
-    { path: "/mantenimiento", component: Mantenimiento, beforeEnter: auth, meta: { roles: ['admin', 'instructor'] } },
+    { path: "/mantenimiento", component: Mantenimiento } ,
     { path: "/usuario", component: Usuario },
     { path: "/venta", component: Venta, beforeEnter: auth, meta: { rol: ['admin', 'instructor'] } },
     { path: "/ingresos", component: Ingreso, beforeEnter: auth, meta: { rol: ['admin', 'recepcionista'] } },

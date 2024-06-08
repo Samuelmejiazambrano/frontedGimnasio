@@ -120,29 +120,43 @@ let useIngreso = useIngresoStore();
 
 let rows = ref([]);
 let columns = ref([
-  { name: "_id", label: "_id", align: "center", field: "_id" },
-  { name: "cliente", label: "Cliente", align: "center", field: "cliente" },
-  { name: "sede", label: "Sede", align: "center", field: "sede" },
   { name: "codigo", label: "codigo", align: "center", field: "codigo" },
+  { name: "nombreCliente", label: "Cliente", align: "center", field: "nombreCliente" },
+  { name: "nombreSede", label: "Sede", align: "center", field: "nombreCliente" }, // Corregido el nombre del campo
   { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
 
+
+
 let listarMaquinas = async () => {
   try {
     let response = await useIngreso.getIngreso();
-    rows.value = response.ingresos || [];
+    let ingresos = response.ingresos || [];
 
     let responseSedes = await useIngreso.getSede();
-    sedes.value = responseSedes.sedes || [];
+    let sedesList = responseSedes.sedes || [];
 
-    let responseCliente = await useIngreso.getCliente();
-    clientes.value = responseCliente.cliente;
-    console.log(responseCliente); // Confirmar que la información de clientes se obtiene correctamente
+    let responseClientes = await useIngreso.getCliente();
+    let clientesList = responseClientes.clientes || [];
+
+    // Asociar las sedes a los ingresos
+    // Asociar las sedes a los ingresos
+rows.value = ingresos.map((ingreso) => {
+  let sede = sedesList.find((s) => s._id === ingreso.sede);
+  let cliente = clientesList.find((c) => c._id === ingreso.cliente);
+  return {
+    ...ingreso,
+    nombreSede: sede ? sede.nombre : "N/A",
+    nombreCliente: cliente ? cliente.nombre : "N/A",
+  };
+});
+
   } catch (error) {
     console.error("Error al listar los datos:", error);
   }
 };
+
 
 const agregarIngreso = async () => {
  const idSedeValue = idSede.value; // Suponiendo que idSede.value es el objeto { label, value }

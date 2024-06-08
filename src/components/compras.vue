@@ -1,4 +1,4 @@
-<template>
+p<template>
   <div id="jjj">
     <h2 class="title">Lista de Planes</h2>
 
@@ -75,12 +75,21 @@
         title="Inventario"
         row-key="_id"
       >
-        <template v-slot:body-cell-opciones="props">
+      <template v-slot:body-cell-estado="props">
           <q-td :props="props">
             <div class="q-pa-md q-gutter-sm"></div>
             <p :style="{ color: props.row.estado == 1 ? 'green' : 'red' }">
               {{ props.row.estado == 1 ? "Activo" : "Inactivo" }}
             </p>
+          </q-td>
+        </template>
+        <template v-slot:body-cell-opciones="props">
+          <q-td :props="props">
+            
+            <div class="q-pa-md q-gutter-sm">
+              
+            </div>
+           
             <q-btn @click="togglePlanStatus(props.row)">
               <span role="img" aria-label="Toggle">
                 {{ props.row.estado == 1 ? "❌" : "✅" }}
@@ -105,9 +114,8 @@ let usePlan = usePlanStore();
 let accion = ref(1);
 let rows = ref([]);
 let columns = ref([
-  { name: "_id", label: "_id", align: "center", field: "_id" },
+  { name: "codigo", label: "codigo", align: "center", field: "codigo" },
   { name: "valor", label: "Valor", align: "center", field: "valor" },
-  { name: "estado", label: "Estado", align: "center", field: "estado" },
   {
     name: "CantDias",
     label: "Cantidad de Días",
@@ -120,6 +128,8 @@ let columns = ref([
     align: "center",
     field: "descripcion",
   },
+    { name: "estado", label: "Estado", align: "center", field: "estado" },
+
 
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
@@ -289,7 +299,15 @@ const togglePlanStatus = async (plan) => {
 }
 .btn {
   display: flex;
-  gap: 10px;
+  justify-content: center; /* Alineación horizontal centrada */
+  gap: 20px; /* Espacio entre botones */
+  margin-bottom: 20px; /* Espacio debajo del contenedor de botones */
+}
+
+.btn .q-btn {
+  min-width: auto; 
+  padding: 10px 20px;
+  font-size: 14px; 
 }
 /* #cont {
   font-size: 2000px;

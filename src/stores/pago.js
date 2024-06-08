@@ -45,7 +45,11 @@ export const usePagoStore = defineStore("Venta", () => {
     };
     let agregarPago = async (plan) => {
         try {
-            const res = await axios.post("http://localhost:4600/api/pago",plan);
+            const res = await axios.post("http://localhost:4600/api/pago",plan, {
+                headers: {
+                  "x-token": token.value,
+                },
+              });
             console.log("plan agregado:", res.data);
            
           } catch (error) {
@@ -63,7 +67,25 @@ export const usePagoStore = defineStore("Venta", () => {
             throw error; 
           }
     };
+    let desactivarPago= async (usuario) => {
+        try {
+            const res = await axios.put(`http://localhost:4600/api/pago/desactivar/${usuario._id}`);
+            console.log("Pago desactivado:", res.data);
+        } catch (error) {
+            console.error("Error al desactivar Pago:", error);
+            throw error;
+        }
+    };
+    let activarPago = async (pagos) => {
+        try {
+            const res = await axios.put(`http://localhost:4600/api/pago/activar/${pagos._id}`);
+            console.log("Pago desactivado:", res.data);
+        } catch (error) {
+            console.error("Error al desactivar plan:", error);
+            throw error;
+        }
+    };
     return {
-        getPago,getCliente,getPlan,agregarPago,actualizarPago
+        getPago,getCliente,getPlan,agregarPago,actualizarPago,activarPago,desactivarPago
     };
 });

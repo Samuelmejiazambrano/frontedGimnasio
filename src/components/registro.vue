@@ -1,30 +1,140 @@
 <template>
   <div class="q-pa-md" id="register">
-
-    <div class="q-gutter-y-md column" style="width: 600px; padding: 30px; border-radius: 10px; background-color: #f3f3f3; box-shadow: 2px 10px 10px rgba(0, 0, 0, 0.1);">
+    <div class="form-container">
       <h3 class="titulo">Registrar</h3>
-      <div class="q-gutter-x-sm row">
-        <div class="col">
-          <q-input class="input" v-model="sede" label="Sede" dense outlined />
-          <q-input class="input" v-model="nombre" label="Nombre" dense outlined />
-          <q-input class="input" v-model="email" label="Email" dense outlined />
-        </div>
-        <div class="col">
-          <q-input class="input" v-model="direccion" label="Dirección" dense outlined />
-          <q-input class="input" v-model="telefono" label="Teléfono" type="number" dense outlined />
-          <q-input class="input" v-model="rol" label="Rol" dense outlined />
-          <q-input class="input" v-model="password" label="Contraseña" type="password" dense outlined />
-        </div>
+      <div class="form-inputs">
+        <q-input
+          outlined
+          v-model="nombre"
+          label="Nombre"
+          class="q-my-sm"
+          type="text"
+        />
+        <q-input
+          outlined
+          v-model="sede"
+          label="Sede"
+          class="q-my-sm"
+          type="text"
+        />
+        <q-input
+          outlined
+          v-model="email"
+          label="Email"
+          class="q-my-sm"
+          type="email"
+        />
+        <q-input
+          outlined
+          v-model="direccion"
+          label="Dirección"
+          class="q-my-sm"
+          type="text"
+        />
+        <q-input
+          outlined
+          v-model="telefono"
+          label="Teléfono"
+          class="q-my-sm"
+          type="tel"
+        />
+        <q-select
+          outlined
+          v-model="rol"
+          label="Rol"
+          class="q-my-sm"
+          :options="roles"
+          option-label="label"
+          option-value="value"
+        />
+        <q-input
+          outlined
+          v-model="password"
+          label="Password"
+          class="q-my-sm"
+          type="password"
+        />
       </div>
-      <div style="display: flex; justify-content: center; margin-top: 20px;">
-        <q-btn style="width: 60%;" @click="register" color="primary" label="Registrarse" dense />
+      <div class="q-mt-md">
+        <q-btn
+          @click="agregarUsuario()"
+          color="primary"
+          label="Agregar"
+          class="full-width-btn"
+        />
       </div>
-      <p style="margin-top: 20px; text-align: center;">¿Ya tienes cuenta? <a href="#">Inicia sesión</a></p>
+      <p class="login-link">¿Ya tienes cuenta? <a href="#">Inicia sesión</a></p>
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { Notify } from "quasar";
+import { useUsuarioStore } from "../stores/usuario.js";
+
+let nombre = ref("");
+let sede = ref("");
+let email = ref("");
+let direccion = ref("");
+let telefono = ref("");
+let rol = ref("");
+let roles = ref([
+  { label: "Admin", value: "admin" },
+  { label: "Instructor", value: "instructor" },
+  { label: "Recepcionista", value: "recepcionista" },
+]);
+let token = ref("");
+let password = ref("");
+let accion = ref(1);
+let currentId = ref(null);
+let useUsuario = useUsuarioStore();
+
+const router = useRouter();
+
+
+
+
+
+const agregarUsuario = async () => {
+  if (nombre.value == "") {
+    Notify.create("por favor ingrese su nombre ");
+  } else if (sede.value == "") {
+    Notify.create("por favor ingrese la Sede");
+  } else if (email.value == "") {
+    Notify.create("por favor ingrese el Email");
+  } else if (direccion.value == "") {
+    Notify.create("por favor ingrese la direccion");
+  } else if (telefono.value == "") {
+    Notify.create("por favor ingrese el telefono");
+  } else if (rol.value == "") {
+    Notify.create("por favor ingrese el rol ");
+  } else if (password.value == "") {
+    Notify.create("por favor ingrese la Contrasena correcta ");
+  } else {
+    try {
+      await useUsuario.agregarUsuarios({
+        nombre: nombre.value,
+        sede: sede.value,
+        email: email.value,
+        direccion: direccion.value,
+        telefono: telefono.value,
+        rol: rol.value.value,
+        password: password.value,
+      });
+router.push('/');
+    } catch (error) {
+      console.error("Error al agregar inventario:", error);
+    }
+  }
+};
+
+
+
+
+
+
 
 </script>
 
@@ -34,19 +144,57 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
+  background-color: #f0f2f5;
 }
 
-.input {
+.form-container {
   width: 100%;
+  max-width: 500px;
+  padding: 30px;
+  border-radius: 12px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.titulo {
+  font-size: 1.8rem;
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
   margin-bottom: 20px;
 }
-.titulo{
-   height: 0px;
-     display: flex;
-  justify-content: center;
-  align-items: center;
-    font-size: 2.1rem;
-  font-family: "Roboto", sans-serif;
-  font-weight: 900;
+
+.form-inputs {
+  width: 100%;
+}
+
+.q-my-sm {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.q-mt-md {
+  margin-top: 20px;
+}
+
+.full-width-btn {
+  width: 100%;
+}
+
+.login-link {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.login-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
 }
 </style>

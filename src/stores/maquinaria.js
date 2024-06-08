@@ -43,7 +43,45 @@ export const useMaquinaStore = defineStore("Maquinaria", () => {
             throw error; 
           }
     };
+    let desactivarMaquina= async (usuario) => {
+        try {
+            const res = await axios.put(`http://localhost:4600/api/maquinas/desactivar/${usuario._id}`);
+            console.log("Maquina desactivado:", res.data);
+        } catch (error) {
+            console.error("Error al desactivar plan:", error);
+            throw error;
+        }
+    };
+    let activarMaquina = async (usuario) => {
+        try {
+            const res = await axios.put(`http://localhost:4600/api/maquinas/activar/${usuario._id}`);
+            console.log("Maquina desactivado:", res.data);
+        } catch (error) {
+            console.error("Error al desactivar plan:", error);
+            throw error;
+        }
+    };
+    let getmaquinasActivos = async () => {
+        try {
+          let res = await axios.get("http://localhost:4600/api/maquinas/activos");
+          console.log(res);
+          return res.data;
+        } catch (error) {
+          console.log(error);
+          return error;
+        }
+      };
+      let getmaquinasInactivos = async () => {
+        try {
+          let res = await axios.get("http://localhost:4600/api/maquinas/inactivos");
+          console.log(res);
+          return res.data;
+        } catch (error) {
+          console.log(error);
+          return error;
+        }
+      };
     return {
-        getMaquina,agregarMaquinaria,getSede,actualizarMaquina
+        getMaquina,agregarMaquinaria,getSede,actualizarMaquina,getmaquinasActivos,getmaquinasInactivos,activarMaquina,desactivarMaquina
     };
 });

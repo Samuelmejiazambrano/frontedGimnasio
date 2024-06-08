@@ -76,9 +76,10 @@
           flex-direction: column;
           align-items: flex-end;
         "
-      
       >
-        <q-btn color="green" class="ff" @click="abrir(1)">Añadir Producto</q-btn>
+        <q-btn color="green" class="ff" @click="abrir(1)"
+          >Añadir Producto</q-btn
+        >
       </div>
       <q-table
         title="Pagos"
@@ -89,8 +90,22 @@
         class="rounded-borders"
         dense
       >
+ 
+
+
         <template v-slot:body-cell-opciones="props">
+          <q-td :props="props">
+            <div class="q-pa-md q-gutter-sm-estado"></div>
+            <p :style="{ color: props.row.estado == 1 ? 'green' : 'red' }">
+              {{ props.row.estado == 1 ? "Activo" : "Inactivo" }}
+            </p>
+          </q-td>
           <q-td :props="props" class="q-pr-xs">
+            <q-btn @click="togglePlanStatus(props.row)">
+              <span role="img" aria-label="Toggle">
+                {{ props.row.estado == 1 ? "❌" : "✅" }}
+              </span>
+            </q-btn>
             <q-btn @click="cargarDatosPago(props.row)">
               <span role="img" aria-label="Editar">✏️</span>
             </q-btn>
@@ -108,32 +123,25 @@ import { usePagoStore } from "../stores/pago.js";
 
 let alert = ref(false);
 let codigo = ref("");
-let idPagos = ref(""); 
+let idPagos = ref("");
 let idCliente = ref("");
 let valor = ref("");
 let accion = ref(1);
 let clientes = ref([]);
 let plan = ref([]);
-let currentId = ref(null); 
+let currentId = ref(null);
 
 let usePago = usePagoStore();
 
 let rows = ref([]);
 let columns = ref([
   { name: "codigo", label: "Código", align: "center", field: "codigo" },
-  { name: "plan", label: "plan", align: "center", field: "plan" },
-  { name: "valor", label: "Valor ", align: "center", field: "valor" },
-  {
-    name: "idCliente",
-    label: "idCliente",
-    align: "center",
-    field: "idCliente",
-  },
-
+  { name: "nombrePlan", label: "Plan", align: "center", field: "nombrePlan" }, // Cambio de 'plan' a 'Plan'
+  { name: "valor", label: "Valor", align: "center", field: "valor" },
+  { name: "estado", label: "Estado", align: "center", field: "estado" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
 
-// Función para abrir el diálogo de agregar/Editar
 function abrir(accionModal) {
   accion.value = accionModal;
   alert.value = true;
@@ -164,7 +172,6 @@ const agregarPagos = async () => {
   }
 };
 
-
 let listarPagos = async () => {
   try {
     let response = await usePago.getPago();
@@ -173,19 +180,29 @@ let listarPagos = async () => {
     clientes.value = responseCliente.cliente;
 
     let responsePlan = await usePago.getPlan();
-    plan.value = responsePlan.planes;
+    let planList = responsePlan.planes;
+
+    // Mapear la lista de pagos y asignar el nombre del 
+    rows.value = rows.value.map((pagos) => {
+      let plan = planList.find((plan) => plan._id === pagos.plan);
+      return {
+        ...pagos,
+        nombrePlan: plan ? plan.descripcion : "N/A",
+      };
+    });
   } catch (error) {
     console.error("Error al obtener los pagos:", error);
     Notify.create("Error al obtener los pagos");
   }
 };
 
+
 const cargarDatosPago = (usuario) => {
   codigo.value = usuario.codigo;
   // idCliente.value = usuario.idCliente;
   // plan.value = usuario.plan;
   valor.value = usuario.valor;
-    currentId.value = usuario._id;
+  currentId.value = usuario._id;
 
   abrir(2);
 };
@@ -194,21 +211,62 @@ const editarPagos = async () => {
   const idPagosSeleccionada = idPagosValue ? idPagosValue.value : null;
   const idclienteValue = idCliente.value; // Suponiendo que idSede.value es el objeto { label, value }
   const idclienteSeleccionada = idclienteValue ? idclienteValue.value : null;
- 
-    try {
-      await usePago.actualizarPago({
-        _id: currentId.value,
-        codigo: codigo.value,
-        plan: idPagosSeleccionada,
-        idCliente: idclienteSeleccionada,
-        valor: valor.value,
-      });
-      cerrar();
-      listarPagos();
-    } catch (error) {
-      console.error("Error al editar inventario:", error);
+
+  try {
+    await usePago.actualizarPago({
+      _id: currentId.value,
+      codigo: codigo.value,
+      plan: idPagosSeleccionada,
+      idCliente: idclienteSeleccionada,
+      valor: valor.value,
+    });
+    cerrar();
+    listarPagos();
+  } catch (error) {
+    console.error("Error al editar inventario:", error);
+  }
+};
+const desactivarPago = async (pago) => {
+  try {
+    if (pago && pago._id) {
+      await usePago.desactivarPago(pago);
+      Notify.create("Plan desactivado correctamente");
+      listarPagos(); // Actualizar la lista de planes después de desactivar uno
+    } else {
+      Notify.create("Plan no válido");
     }
-  
+  } catch (error) {
+    console.error("Error al desactivar plan:", error);
+    Notify.create("Error al desactivar plan");
+  }
+};
+
+const activarPagos = async (pagos) => {
+  try {
+    if (pagos && pagos._id) {
+      await usePago.activarPago(pagos);
+      Notify.create("Plan activado correctamente");
+      listarPagos();
+    } else {
+      Notify.create("Plan no válido");
+    }
+  } catch (error) {
+    console.error("Error al activar plan:", error);
+    Notify.create("Error al activar plan");
+  }
+};
+const togglePlanStatus = async (pagos) => {
+  console.log(pagos);
+  try {
+    if (pagos.estado === 1) {
+      await desactivarPago(pagos);
+    } else {
+      await activarPagos(pagos);
+    }
+  } catch (error) {
+    console.error("Error al cambiar el estado del plan:", error);
+    Notify.create("Error al cambiar el estado del plan");
+  }
 };
 // Ejecutar la función listarPagos al montar el componente
 onMounted(() => {
@@ -242,11 +300,9 @@ onMounted(() => {
   font-size: 18px;
 }
 
-
-.rounded-borders{
+.rounded-borders {
   border-radius: 8px;
   width: 150vh;
- 
 }
 
 /* Ajuste del contenedor de la tabla */
@@ -256,7 +312,7 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   width: 100%;
-  font-family:sans-serif;
+  font-family: sans-serif;
 }
 
 /* Ajustes para el botón de añadir producto */
@@ -269,12 +325,12 @@ onMounted(() => {
 }
 
 .q-dialog .q-card {
-  max-width: 500px; 
-  width: 100%; 
+  max-width: 500px;
+  width: 100%;
 }
 
 .q-card-section {
-  padding: 20px; 
+  padding: 20px;
 }
 
 .q-input,
@@ -282,9 +338,7 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.ff{
+.ff {
   top: -30px;
 }
-
 </style>
-

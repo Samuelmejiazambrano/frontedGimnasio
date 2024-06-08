@@ -1,12 +1,14 @@
 <template>
   <div id="zzz">
     <h2 class="title">Lista de Sedes</h2>
-
-    <div style="width: 150vh">
-  
-      
-    <div class="btn">
-     <q-btn color="green" class="qqq" icon="add_location" @click="abrir(1)" />
+  <div class="btn">
+        <q-btn
+          color="green"
+          class="qqq"
+          icon="add_location"
+          @click="abrir(1)">
+          agregar
+        </q-btn>
         <q-btn color="primary" class="sa" @click="listarIngesos()"
           >Listar Usuarios
         </q-btn>
@@ -17,86 +19,77 @@
           >Listar Sedes Inactivos</q-btn
         >
       </div>
-        <q-dialog v-model="alert" persistent>
-                  <q-card class="" style="width: 700px">
-                    <q-card-section
-                      style="background-color: #344860; margin-bottom: 20px"
-                    >
-                      <div class="text-h6 text-white">
-                        {{
-                          accion == 1
-                            ? "Agregar Instructor"
-                            : "Editar Instructor"
-                        }}
-                      </div>
-                    </q-card-section>
-                    <q-input
-                      outlined
-                      v-model="codigo"
-                      label="Codigo"
-                      class="q-my-md q-mx-md"
-                      type="number"
-                    />
-                    <q-input
-                      outlined
-                      v-model="nombre"
-                      label="Nombre de la Sede"
-                      class="q-my-md q-mx-md"
-                      type="text"
-                    />
+    <div style="width: 150vh">
+    
+      <q-dialog v-model="alert" persistent>
+        <q-card class="" style="width: 700px">
+          <q-card-section
+            style="background-color: #344860; margin-bottom: 20px"
+          >
+            <div class="text-h6 text-white">
+              {{ accion == 1 ? "Agregar Instructor" : "Editar Instructor" }}
+            </div>
+          </q-card-section>
+          <q-input
+            outlined
+            v-model="codigo"
+            label="Codigo"
+            class="q-my-md q-mx-md"
+            type="number"
+          />
+          <q-input
+            outlined
+            v-model="nombre"
+            label="Nombre de la Sede"
+            class="q-my-md q-mx-md"
+            type="text"
+          />
 
-                    <q-input
-                      outlined
-                      v-model="direccion"
-                      label="Dirrecion de la Sede"
-                      class="q-my-md q-mx-md"
-                      type="text"
-                    />
+          <q-input
+            outlined
+            v-model="direccion"
+            label="Dirrecion de la Sede"
+            class="q-my-md q-mx-md"
+            type="text"
+          />
 
-                    <q-input
-                      outlined
-                      v-model="hora"
-                      label="Horario"
-                      class="q-my-md q-mx-md"
-                      type="text"
-                    />
-                    <q-input
-                      outlined
-                      v-model="ciudad"
-                      label="Ciudad de la Sede"
-                      class="q-my-md q-mx-md"
-                      type="text"
-                    />
-                    <q-input
-                      outlined
-                      v-model="telefono"
-                      type="tel"
-                      label="Telefono"
-                      class="q-my-md q-mx-md"
-                    />
+          <q-input
+            outlined
+            v-model="hora"
+            label="Horario"
+            class="q-my-md q-mx-md"
+            type="text"
+          />
+          <q-input
+            outlined
+            v-model="ciudad"
+            label="Ciudad de la Sede"
+            class="q-my-md q-mx-md"
+            type="text"
+          />
+          <q-input
+            outlined
+            v-model="telefono"
+            type="tel"
+            label="Telefono"
+            class="q-my-md q-mx-md"
+          />
 
-                    <q-card-actions align="right">
-                      <q-btn
-                        @click="
-                          accion === 1 ? agregarSede() : editarSede()
-                        "
-                        color="red"
-                        class="text-white"
-                      >
-                        {{ accion === 1 ? "Agregar" : "Editar" }}
-                        <template v-slot:loading>
-                          <q-spinner color="primary" size="1em" />
-                        </template>
-                      </q-btn>
-                      <q-btn
-                        label="Cerrar"
-                        color="black"
-                        outline
-                        @click="cerrar"
-                      />
-                    </q-card-actions>
-                  </q-card>
-                </q-dialog>
+          <q-card-actions align="right">
+            <q-btn
+              @click="accion === 1 ? agregarSede() : editarSede()"
+              color="red"
+              class="text-white"
+            >
+              {{ accion === 1 ? "Agregar" : "Editar" }}
+              <template v-slot:loading>
+                <q-spinner color="primary" size="1em" />
+              </template>
+            </q-btn>
+            <q-btn label="Cerrar" color="black" outline @click="cerrar" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
       <div class="q-pa-md">
         <q-table
           title="Sedes"
@@ -105,19 +98,30 @@
           row-key="_id"
           class="tabla"
         >
+          <template v-slot:body-cell-createAt="props">
+                <q-td :props="props">
+                  {{ moment(props.row.createAt).format("dddd, D MMMM YYYY") }}
+                </q-td>
+              </template>
+          <template v-slot:body-cell-estado="props">
+            <q-td :props="props">
+            
+              <div class="q-pa-md q-gutter-sm"></div>
+              <p :style="{ color: props.row.estado == 1 ? 'green' : 'red' }">
+                {{ props.row.estado == 1 ? "Activo" : "Inactivo" }}
+              </p>
+            </q-td>
+          </template>
           <template v-slot:body-cell-opciones="props">
             <q-td :props="props">
-              <div class="q-pa-md q-gutter-sm">
-              
-              </div>
               <q-btn @click="cargarDatosUsuario(props.row)">
                 <span role="img" aria-label="Editar">✏️</span>
               </q-btn>
-             <q-btn @click="togglePlanStatus(props.row)">
-              <span role="img" aria-label="Toggle">
-                {{ props.row.estado == 1 ? "❌" : "✅" }}
-              </span>
-            </q-btn>
+              <q-btn @click="togglePlanStatus(props.row)">
+                <span role="img" aria-label="Toggle">
+                  {{ props.row.estado == 1 ? "❌" : "✅" }}
+                </span>
+              </q-btn>
             </q-td>
           </template>
         </q-table>
@@ -129,6 +133,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useSedeStore } from "../stores/sede.js";
+import moment from "moment";
+import "moment/locale/es";
 import { Notify } from "quasar";
 let alert = ref(false);
 let nombre = ref("");
@@ -139,7 +145,7 @@ let hora = ref("");
 let ciudad = ref("");
 let telefono = ref("");
 let accion = ref(1);
-let currentId=ref(null);
+let currentId = ref(null);
 
 let useSede = useSedeStore();
 
@@ -154,8 +160,8 @@ let columns = ref([
   },
   { name: "horario", label: "horario", align: "center", field: "horario" },
   { name: "ciudad", label: "ciudad", align: "center", field: "ciudad" },
-  { name: "estado", label: "Estado", align: "center", field: "estado" },
   { name: "createAt", label: "createAt", align: "center", field: "createAt" },
+  { name: "estado", label: "Estado", align: "center", field: "estado" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
 
@@ -195,17 +201,16 @@ function cerrar() {
   alert.value = false;
 }
 let expresiontel = /^\d{8,}$/;
-  let verifitel = expresiontel.test(telefono.value);
+let verifitel = expresiontel.test(telefono.value);
 
 const agregarSede = async () => {
-
   if (codigo.value == "") {
     Notify.create("por favor ingrese su codigo ");
   } else if (nombre.value == "") {
     Notify.create("por favor ingrese el nombre ");
   } else if (direccion.value == "") {
     Notify.create("por favor ingrese la direccion");
-  }  else if (telefono.value.length !== 10) {
+  } else if (telefono.value.length !== 10) {
     Notify.create("El teléfono debe tener exactamente 10 números");
   } else if (hora.value == "") {
     Notify.create("por favor ingrese el hora ");
@@ -229,7 +234,7 @@ const agregarSede = async () => {
   }
 };
 const cargarDatosUsuario = (usuario) => {
-   currentId.value=usuario._id
+  currentId.value = usuario._id;
   nombre.value = usuario.nombre;
   direccion.value = usuario.direccion;
   codigo.value = usuario.codigo;
@@ -240,7 +245,6 @@ const cargarDatosUsuario = (usuario) => {
   abrir(2);
 };
 const editarSede = async () => {
- 
   if (codigo.value == "") {
     Notify.create("por favor ingrese su codigo ");
   } else if (nombre.value == "") {
@@ -255,7 +259,6 @@ const editarSede = async () => {
     Notify.create("por favor ingrese la ciudad");
   } else {
     try {
-    
       await useSede.actualizarSede({
         _id: currentId.value,
         nombre: nombre.value,
@@ -364,6 +367,9 @@ onMounted(() => {
 
 .btn {
   display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+ align-items: flex-end;
   gap: 10px;
 }
 </style>

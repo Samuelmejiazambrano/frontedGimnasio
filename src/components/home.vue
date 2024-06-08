@@ -1,5 +1,15 @@
 <template>
   <div class="home">
+    <section class="birthday-section">
+      <h4>Cumpleañeros del Mes</h4>
+      <ul>
+        <li v-for="cliente in clientesCumple" :key="cliente._id">
+          {{ cliente.nombre }} - 
+          <span class="fecha-cumple">{{ formatFecha(cliente.fechaNac) }}</span>
+        </li>
+      </ul>
+    </section>
+
     <section class="hero-section">
       <div class="hero-content">
         <h1>Titan Fitness Club</h1>
@@ -42,8 +52,30 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted } from "vue";
+import { useClienteStore } from "../stores/cliente.js";
+import { format } from 'date-fns';
 
+const useCliente = useClienteStore();
+const clientesCumple = ref([]);
+
+const obtenerCumpleanos = async () => {
+  try {
+    const clientes = await useCliente.getCumpleanos();
+    clientesCumple.value = clientes;
+  } catch (error) {
+    console.error("Error al obtener los cumpleaños:", error);
+  }
+};
+
+const formatFecha = (fecha) => {
+  return format(new Date(fecha), 'dd MMMM yyyy');
+};
+
+onMounted(() => {
+  obtenerCumpleanos();
+});
 </script>
 
 <style scoped>
@@ -53,9 +85,44 @@
   background-repeat: no-repeat;
   padding: 20px;
   display: flex;
-  justify-content: center;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
+  position: relative; /* Add relative positioning */
+}
+
+.birthday-section {
+  position: absolute; /* Absolute positioning */
+  top: 10px; /* Distance from the top */
+  left: 20px; /* Distance from the right */
+  width: 300px; /* Adjust width as needed */
+  background: rgba(117, 143, 176, 0.8);
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
+}
+
+.birthday-section h4 {
+  margin: 0 0 10px 0;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.birthday-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.birthday-section li {
+  padding: 5px 0;
+  font-size: 0.9em;
+  display: flex;
+  justify-content: space-between;
+}
+
+.fecha-cumple {
+  font-size: 0.9em;
+  font-weight: bold;
 }
 
 .hero-section {
@@ -69,6 +136,7 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  margin-top: 150px; /* Adjust margin to prevent overlap */
 }
 
 .hero-content {
@@ -106,7 +174,8 @@
   margin-bottom: 20px;
 }
 
-.feature h4, .feature p {
+.feature h4,
+.feature p {
   color: white; /* Color de texto más visible */
 }
 </style>

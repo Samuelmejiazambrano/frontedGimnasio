@@ -2,7 +2,7 @@
   <div id="rrr">
     <h2 class="title">Lista de Inventario</h2>
     <div class="q-pa-md">
-      <div style="width: 120vh">
+      <div style="width: 100%">
         <div
           style="
             width: 100%;
@@ -15,12 +15,13 @@
             color="green"
             class="moi"
             icon="inventory"
-            @click="abrirAgregarModal(1)"
-          />
+            @click="abrirAgregarModal(1)">
+            agregar
+            </q-btn>
+            
         </div>
       </div>
 
-      <!-- Modal para agregar/editar -->
       <q-dialog v-model="agregarModal" persistent>
         <q-card class="" style="width: 500px; max-height: 1000px">
           <q-card-section
@@ -79,38 +80,45 @@
         </q-card>
       </q-dialog>
 
-      <q-table
-        title="Inventario"
-        title-class="text-weight-bolder text-h5"
-        :rows="rows"
-        :columns="columns"
-        row-key="_id"
-      >
-        <template v-slot:body-cell-opciones="props">
-          <q-td :props="props">
-            <div class="q-pa-md q-gutter-sm">
-              <q-btn @click="cargarDatosUsuario(props.row)">
-                <span role="img" aria-label="Editar">✏️</span>
-              </q-btn>
-              <q-btn
-                color="red"
-                flat
-                dense
-                round
-                icon="delete"
-                @click="eliminarInventario(props.row)"
-              />
-            </div>
-          </q-td>
-        
-        </template>
-       
-      </q-table>
-        <q-tr>
-            <q-td colspan="4" class="text-right">
-              <div class="text-h6">Total: {{ total.total }}</div>
-            </q-td>
-          </q-tr>
+  <q-table
+  title="Inventario"
+  title-class="text-weight-bolder text-h5"
+  :rows="rows"
+  :columns="columns"
+  row-key="_id"
+  class="tabla"
+>
+  <template v-slot:body-cell-createAt="props">
+    <q-td :props="props">
+      {{ moment(props.row.createAt).format('dddd, D MMMM YYYY') }}
+    </q-td>
+  </template>
+
+  <!-- Add this template for the "Opciones" column -->
+  <template v-slot:body-cell-opciones="props">
+    <q-td :props="props">
+      <div class="q-pa-md q-gutter-sm">
+        <q-btn @click="cargarDatosUsuario(props.row)">
+          <span role="img" aria-label="Editar">✏️</span>
+        </q-btn>
+        <q-btn
+          color="red"
+          flat
+          dense
+          round
+          icon="delete"
+          @click="eliminarInventario(props.row)"
+        />
+      </div>
+    </q-td>
+  </template>
+</q-table>
+
+      <q-tr>
+        <q-td colspan="4" class="text-right">
+      <div class="text-h6 total">Total: {{ total.total }}</div>
+        </q-td>
+      </q-tr>
     </div>
   </div>
 </template>
@@ -119,7 +127,8 @@
 import { ref, onMounted } from "vue";
 import { Notify } from "quasar";
 import { useInventarioStore } from "../stores/inventario.js";
-
+import moment from "moment";
+import "moment/locale/es";
 let useInventario = useInventarioStore();
 
 let rows = ref([]);
@@ -145,12 +154,14 @@ let cantidad = ref("");
 let accion = ref(1);
 let currentId = ref(null);
 let total = ref(0);
+
 const listarInventario = async () => {
   const response = await useInventario.getInventario();
   total.value = await useInventario.getTotal();
   console.log(total.value);
   rows.value = response.inventarios;
 };
+const formattedDate = moment().format("dddd, D MMMM YYYY");
 
 const agregarInventario = async () => {
   if (descripcion.value === "") {
@@ -269,6 +280,7 @@ onMounted(() => {
   font-size: 18px;
 }
 
+
 #rrr {
   display: flex;
   flex-direction: column;
@@ -279,6 +291,15 @@ onMounted(() => {
 }
 
 .moi {
-  top: -30px;
+  margin-top: -30px; /* Ajusta el margen superior del botón */
 }
+.tabla {
+  width: 150vh;
+}
+  .total {
+    font-size: 1.5rem; 
+    margin-top: 20px;
+    text-align: right; 
+    width: 100%; 
+  }
 </style>

@@ -1,18 +1,36 @@
+<style>
+.desktop
+  #app
+  .q-layout
+  .q-page-container
+  #aaa
+  .q-pa-md
+  .q-table__container
+  .q-table__middle
+  thead
+  .q-table
+  th {
+  font-size: 25px;
+}
+</style>
+
 <template>
   <div id="aaa">
-    <h2 class="title">Lista de Usuario</h2>
+    <h2 class="title">Lista de Usuarios</h2>
 
     <div class="q-pa-md" id="rr">
-      <q-btn color="primary" class="bb" @click="listarUsuariosActivos()"
-        >Listar Usuarios Activos</q-btn
-      >
-      <q-btn color="primary" class="bb" @click="listarUsuariosInactivo()"
-        >Listar Usuarios Inactivos</q-btn
-      >
-      <q-btn color="primary" class="bb" @click="listarIngesos()"
-        >Listar Usuarios
-      </q-btn>
-      <q-btn color="green" class="bb" @click="abrir(1)">Añadir Usuario</q-btn>
+      <div class="btn">
+        <q-btn color="primary" class="bb" @click="listarUsuariosActivos()"
+          >Listar Usuarios Activos</q-btn
+        >
+        <q-btn color="primary" class="bb" @click="listarUsuariosInactivo()"
+          >Listar Usuarios Inactivos</q-btn
+        >
+        <q-btn color="primary" class="bb" @click="listarIngesos()"
+          >Listar Usuarios
+        </q-btn>
+        <q-btn color="green" class="bb" @click="abrir(1)">Añadir Usuario</q-btn>
+      </div>
 
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 500px">
@@ -90,8 +108,13 @@
           </q-card-actions>
         </q-card>
       </q-dialog>
-
-      <q-table class="tabla" :rows="rows" :columns="columns" row-key="_id">
+      <q-table
+        q-table
+        :table-row-class="tabla"
+        :rows="rows"
+        :columns="columns"
+        row-key="_id"
+      >
         <template v-slot:body-cell-estado="props">
           <q-td :props="props">
             <div class="q-pa-md q-gutter-sm"></div>
@@ -322,11 +345,15 @@ onMounted(() => {
 });
 </script>
 <style scoped>
+.q-table {
+  /*#app .q-layout .q-page-container #aaa .q-pa-md .q-table__container .q-table__middle thead .q-table th{*/
+  background-color: aqua !important;
+}
 /* Estilos para el título */
 .title {
   font-size: 2.1rem;
   font-family: "Roboto", sans-serif;
-  border-bottom: 3px solid #344860;
+  border-bottom: 3px solid #b31919;
   padding-top: 20px;
   font-weight: 900;
 }
@@ -378,5 +405,16 @@ onMounted(() => {
 /* Iconos dentro de los botones */
 .q-table-body .q-btn .q-icon {
   font-size: 20px; /* Tamaño de los iconos */
+}
+.btn {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: flex-end !important;
+  gap: 10px !important;
+}
+.q-table th {
+  position: relative;
+  font-size: 25px !important;
 }
 </style>
