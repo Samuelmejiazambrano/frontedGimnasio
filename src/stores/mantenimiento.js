@@ -1,11 +1,19 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 import { ref } from "vue";
+import { useUsuarioStore } from "../stores/usuario.js";
+
 
 export const useMantenimientoStore = defineStore("Mantenimiento", () => {
+    let useUsuario = useUsuarioStore();
+
     let getMantenimiento = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/mantenimiento");
+            let res = await axios.get("http://localhost:4600/api/mantenimiento",{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log(res);
             return res.data;
         } catch (error) {
@@ -15,7 +23,11 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
     };
     let getMaquina = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/maquinas");
+            let res = await axios.get("http://localhost:4600/api/maquinas",{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log(res);
             return res.data;
         } catch (error) {
@@ -25,7 +37,11 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
     };
     let agregarMantenimiento = async (inventario) => {
         try {
-            const res = await axios.post("http://localhost:4600/api/mantenimiento",inventario);
+            const res = await axios.post("http://localhost:4600/api/mantenimiento",inventario,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log("mantenimiento agregado:", res.data);
            
           } catch (error) {
@@ -35,7 +51,11 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
     };
     let getUsuario = async () => {
         try {
-          let res = await axios.get("http://localhost:4600/api/usuario");
+          let res = await axios.get("http://localhost:4600/api/usuario",{
+            headers: {
+              "x-token":useUsuario.token,
+            },
+          });
           console.log(res);
           return res.data;
         } catch (error) {
@@ -45,7 +65,11 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
       };
       let actualizarMantenimiento= async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/mantenimiento/actualizar/${usuario._id}`,usuario);
+            const res = await axios.put(`http://localhost:4600/api/mantenimiento/actualizar/${usuario._id}`,usuario,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log("mantenimiento actualizado:", res.data);
            
           } catch (error) {
@@ -56,7 +80,11 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
       
     let desactivarMantenimiento = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/mantenimiento/desactivar/${usuario._id}`);
+            const res = await axios.put(`http://localhost:4600/api/mantenimiento/desactivar/${usuario._id}`,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log("plan desactivado:", res.data);
         } catch (error) {
             console.error("Error al desactivar plan:", error);
@@ -65,15 +93,31 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
     };
     let activarMantenimiento= async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/mantenimiento/activar/${usuario._id}`);
+            const res = await axios.put(`http://localhost:4600/api/mantenimiento/activar/${usuario._id}`,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log("Usuario desactivado:", res.data);
         } catch (error) {
             console.error("Error al desactivar plan:", error);
             throw error;
         };
     };
-    
+    const getMantenimientoID = async (sedeId) => {
+        try {
+            let res = await axios.get(`http://localhost:4600/api/mantenimiento/${sedeId}`,{
+              headers: {
+                "x-token":useUsuario.token,
+              },
+            });
+            return res.data;
+        } catch (error) {
+            console.log(error);
+            return error;
+        }
+    };
     return {
-        getMantenimiento,getMaquina,agregarMantenimiento,getUsuario,actualizarMantenimiento,activarMantenimiento,desactivarMantenimiento
+        getMantenimiento,getMaquina,agregarMantenimiento,getUsuario,actualizarMantenimiento,activarMantenimiento,desactivarMantenimiento,getMantenimientoID
     };
 });

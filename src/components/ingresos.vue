@@ -3,8 +3,18 @@
     <h2 class="title">Lista de Ingresos</h2>
 
     <div class="q-pa-md" id="oo">
-      <div style="width: 100%; display: flex; flex-direction: column; align-items: flex-end;">
-        <q-btn color="green" class="ii" @click="abrir(1)">Añadir Producto</q-btn>
+          <div class="btn">
+
+           <q-select
+         class="select"
+          v-model="selectedSedeId"
+          :options="options"
+          label="Seleccionar Ingreso"
+        />
+         <q-btn color="green" icon="search" @click="buscarIngreso">
+        Buscar Ingreso
+      </q-btn>
+        <q-btn color="green"  @click="abrir(1)">Añadir Producto</q-btn>
       </div>
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 500px">
@@ -20,28 +30,33 @@
             class="q-my-md q-mx-md"
             type="number"
           />
-          <q-select
-            outlined
-            v-model="idSede"
-            label="Sede"
-            class="q-my-md q-mx-md"
-            :options="sedes.map((sede) => ({
-              label: sede.nombre,
-              value: sede._id,
-            }))"
-          />
-           <q-select
-            outlined
-            v-model="idCliente"
-            label="Cliente"
-            class="q-my-md q-mx-md"
-            :options="
-              clientes.map((cliente) => ({
-                label: cliente.nombre,
-                value: cliente._id,
-              }))
-            "
-          />
+<q-select
+  outlined
+  v-model="idSede"
+  label="Cliente"
+  class="q-my-md q-mx-md"
+  :options="
+    sedesList.map((sedes) => ({
+      label: sedes.nombre,
+      value: sedes._id,
+    }))
+  "
+/>
+
+<q-select
+  outlined
+  v-model="idCliente"
+  label="Cliente"
+  class="q-my-md q-mx-md"
+  :options="
+    clientesList.map((clientes) => ({
+      label: clientes.nombre,
+      value: clientes._id,
+    }))
+  "
+/>
+
+
           <q-card-actions align="right">
             <q-btn
               @click="accion === 1 ? agregarIngreso() : editarIngreso()"
@@ -89,16 +104,24 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { Notify } from "quasar";
+
 import { useIngresoStore } from "../stores/ingreso.js";
 
 let alert = ref(false);
-let sedes = ref([]);
-let clientes = ref([]);
+let sede= ref([]);
+let cliente = ref([]);
 let codigo = ref("");
 let idSede = ref("");
 let idCliente = ref("");
 let accion = ref(1);
 let currentId = ref(null);
+let sedesList = ref([]);
+let clientesList = ref([]);
+let selectedSedeId = ref(null);
+let options = ref([]); 
+
+
 
 function abrir(accionModal) {
   accion.value = accionModal;
@@ -135,13 +158,14 @@ let listarMaquinas = async () => {
     let ingresos = response.ingresos || [];
 
     let responseSedes = await useIngreso.getSede();
-    let sedesList = responseSedes.sedes || [];
+    sedesList = responseSedes.sedes || [];
 
     let responseClientes = await useIngreso.getCliente();
-    let clientesList = responseClientes.clientes || [];
+    clientesList = responseClientes.cliente || [];
+console.log("sedesList:", sedesList);
+console.log("clientesList:", clientesList);
 
-    // Asociar las sedes a los ingresos
-    // Asociar las sedes a los ingresos
+   
 rows.value = ingresos.map((ingreso) => {
   let sede = sedesList.find((s) => s._id === ingreso.sede);
   let cliente = clientesList.find((c) => c._id === ingreso.cliente);
@@ -150,8 +174,12 @@ rows.value = ingresos.map((ingreso) => {
     nombreSede: sede ? sede.nombre : "N/A",
     nombreCliente: cliente ? cliente.nombre : "N/A",
   };
-});
 
+});
+    options.value =response.ingresos.map((ingreso) => ({
+    label: ingreso.cliente,
+    value: ingreso._id,
+  }));
   } catch (error) {
     console.error("Error al listar los datos:", error);
   }
@@ -198,7 +226,25 @@ const cargarDatosIngresos = (ingreso) => {
   idCliente.value = ingreso.cliente;
   abrir(2);
 };
-
+const buscarIngreso = async () => {
+  try {
+    if (selectedSedeId.value) {
+      const res = await useIngreso.getIngresoID(selectedSedeId.value.value);
+      console.log(selectedSedeId);
+      if (res && res.ingresos) {
+        rows.value = [res.ingresos];
+        Notify.create("ingresos encontrada");
+      } else {
+        Notify.create("No se encontró la sede");
+      }
+    } else {
+      Notify.create("Por favor ingrese un ID de sede");
+    }
+  } catch (error) {
+    console.error("Error al buscar la sede:", error);
+    Notify.create("Error al buscar la sede");
+  }
+};
 onMounted(() => {
   listarMaquinas();
 });
@@ -247,9 +293,25 @@ onMounted(() => {
 }
 #oo{
   font-family:sans-serif;
-  width: 100%;
+  width: 90%;
 }
 .ii{
   top: -20px;
+}
+.btn {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100%;
+  margin-top: 20px;
+  
+}
+.select{
+width: 300px;
+}
+.btn >*{
+   border-radius: 30px;
 }
 </style>

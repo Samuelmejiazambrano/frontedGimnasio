@@ -3,15 +3,17 @@
     <h2 class="title">Lista de Venta</h2>
 
     <div class="q-pa-md" id="kk">
-      <div
-        style="
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-        "
-      >
-        <q-btn color="green" class="nn" @click="abrir(1)">Añadir Producto</q-btn>
+      <div class="btn">
+           <q-select
+         class="select"
+          v-model="selectedSedeId"
+          :options="options"
+          label="Seleccionar Cliente"
+        />
+         <q-btn color="green"  icon="search" @click="buscarVenta">
+        Buscar Sede
+      </q-btn>
+        <q-btn color="green"  @click="abrir(1)">Añadir Producto</q-btn>
       </div>
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 500px">
@@ -143,7 +145,8 @@ let fechaInicio = ref("");
 let fechaFin = ref("");
 let accion = ref(1);
 let currentId = ref(null); 
-
+let options = ref([]); 
+let selectedSedeId = ref(null);
 function abrir(accionModal) {
   accion.value = accionModal;
   alert.value = true;
@@ -190,6 +193,11 @@ let columns = ref([
 let listarMaquinas = async () => {
   let response = await useVenta.getVenta();
   rows.value = response.ventas;
+   options.value =response.ventas.map((venta) => ({
+    label: venta.codigoProducto,
+    value: venta._id,
+  }));
+  
 };
 
 let listarInventario = async () => {
@@ -249,7 +257,24 @@ const formatDate = (dateString) => {
   const date = new Date(dateString);
   return isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
 };
-
+const buscarVenta = async () => {
+  try {
+    if (selectedSedeId.value) {
+      const res = await useVenta.getVentaID(selectedSedeId.value.value);
+      if (res && res.ventas) {
+        rows.value = [res.ventas];
+        Notify.create("ventas encontrada");
+      } else {
+        Notify.create("No se encontró la ventas");
+      }
+    } else {
+      Notify.create("Por favor ingrese un ID de sede");
+    }
+  } catch (error) {
+    console.error("Error al buscar la sede:", error);
+    Notify.create("Error al buscar la sede");
+  }
+};
 onMounted(() => {
   listarMaquinas();
   listarInventario();
@@ -300,6 +325,22 @@ onMounted(() => {
 
 #kk {
   font-family: "Roboto", sans-serif;
+  width: 90%;
+}
+.btn {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 10px !important;
   width: 100%;
+  margin-top: 20px;
+  
+}
+.select{
+width: 300px;
+}
+.btn >*{
+   border-radius: 30px;
 }
 </style>

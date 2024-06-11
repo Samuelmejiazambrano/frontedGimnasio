@@ -7,7 +7,11 @@ export const useUsuarioStore = defineStore("usuario", () => {
   let usuario =ref({})
   let getUsuario = async () => {
     try {
-      let res = await axios.get("http://localhost:4600/api/usuario");
+      let res = await axios.get("http://localhost:4600/api/usuario",{
+        headers: {
+          "x-token": token.value,
+        },
+      });
       console.log(res);
       return res.data;
     } catch (error) {
@@ -17,7 +21,11 @@ export const useUsuarioStore = defineStore("usuario", () => {
   };
   let getUsuarioActivos = async () => {
     try {
-      let res = await axios.get("http://localhost:4600/api/usuario/activos");
+      let res = await axios.get("http://localhost:4600/api/usuario/activos", {
+        headers: {
+          "x-token": token.value,
+        },
+      });
       console.log(res);
       return res.data;
     } catch (error) {
@@ -27,7 +35,11 @@ export const useUsuarioStore = defineStore("usuario", () => {
   };
   let getUsuarioInactivos = async () => {
     try {
-      let res = await axios.get("http://localhost:4600/api/usuario/inactivos");
+      let res = await axios.get("http://localhost:4600/api/usuario/inactivos", {
+        headers: {
+          "x-token": token.value,
+        },
+      });
       console.log(res);
       return res.data;
     } catch (error) {
@@ -64,7 +76,11 @@ export const useUsuarioStore = defineStore("usuario", () => {
 
   let desactivarUsuarios = async (usuario) => {
     try {
-      const res = await axios.put(`http://localhost:4600/api/usuario/desactivar/${usuario._id}`);
+      const res = await axios.put(`http://localhost:4600/api/usuario/desactivar/${usuario._id}`, {
+        headers: {
+          "x-token": token.value,
+        },
+      });
       console.log("Usuario desactivado:", res.data);
     } catch (error) {
       console.error("Error al desactivar usuario:", error);
@@ -74,7 +90,11 @@ export const useUsuarioStore = defineStore("usuario", () => {
 
   let activarUsuarios = async (usuario) => {
     try {
-      const res = await axios.put(`http://localhost:4600/api/usuario/activar/${usuario._id}`);
+      const res = await axios.put(`http://localhost:4600/api/usuario/activar/${usuario._id}`,"", {
+        headers: {
+          "x-token": token.value,
+        },
+      });
       console.log("Usuario activado:", res.data);
     } catch (error) {
       console.error("Error al activar usuario:", error);
@@ -103,7 +123,19 @@ export const useUsuarioStore = defineStore("usuario", () => {
     usuario.value = null;
     token.value = '';
   };
-
+  const getusuarioID = async (sedeId) => {
+    try {
+        let res = await axios.get(`http://localhost:4600/api/usuario/${sedeId}`, {
+          headers: {
+            "x-token": token.value,
+          },
+        });
+        return res.data;
+    } catch (error) {
+        console.log(error);
+        return error;
+    }
+};
   return {
     getUsuario,
     agregarUsuarios,
@@ -111,7 +143,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
     activarUsuarios,
     UpdateUsuarios,
     login,
-    token,usuario,clearSession,getUsuarioActivos,getUsuarioInactivos
+    token,usuario,clearSession,getUsuarioActivos,getUsuarioInactivos,getusuarioID
   };
 },{
 

@@ -1,11 +1,19 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 import { ref } from "vue";
+import { useUsuarioStore } from "../stores/usuario.js";
+
 
 export const useVentaStore = defineStore("Venta", () => {
+    let useUsuario = useUsuarioStore();
+
     let getVenta = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/venta");
+            let res = await axios.get("http://localhost:4600/api/venta",{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log(res);
             return res.data;
         } catch (error) {
@@ -15,7 +23,11 @@ export const useVentaStore = defineStore("Venta", () => {
     };
     let getInventario = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/inventario");
+            let res = await axios.get("http://localhost:4600/api/inventario",{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log(res);
             return res.data;
         } catch (error) {
@@ -25,7 +37,11 @@ export const useVentaStore = defineStore("Venta", () => {
     };
     let agregarVenta = async (venta) => {
         try {
-            const res = await axios.post("http://localhost:4600/api/venta",venta);
+            const res = await axios.post("http://localhost:4600/api/venta",venta,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log("venta agregado:", res.data);
            
           } catch (error) {
@@ -37,7 +53,11 @@ export const useVentaStore = defineStore("Venta", () => {
     };
     let actualizarVenta= async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/venta/actualizar/${usuario._id}`,usuario);
+            const res = await axios.put(`http://localhost:4600/api/venta/actualizar/${usuario._id}`,usuario,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log("sede actualizado:", res.data);
            
           } catch (error) {
@@ -45,8 +65,20 @@ export const useVentaStore = defineStore("Venta", () => {
             throw error; 
           }
     };
-    
+    const getVentaID = async (sedeId) => {
+      try {
+          let res = await axios.get(`http://localhost:4600/api/venta/${sedeId}`,{
+            headers: {
+              "x-token":useUsuario.token,
+            },
+          });
+          return res.data;
+      } catch (error) {
+          console.log(error);
+          return error;
+      }
+  };
     return {
-        getVenta,agregarVenta,actualizarVenta,getInventario
+        getVenta,agregarVenta,actualizarVenta,getInventario,getVentaID
     };
 });

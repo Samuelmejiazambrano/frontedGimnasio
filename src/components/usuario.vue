@@ -20,17 +20,25 @@
 
     <div class="q-pa-md" id="rr">
       <div class="btn">
-        <q-btn color="primary" class="bb" @click="listarUsuariosActivos()"
-          >Listar Usuarios Activos</q-btn
-        >
-        <q-btn color="primary" class="bb" @click="listarUsuariosInactivo()"
-          >Listar Usuarios Inactivos</q-btn
-        >
-        <q-btn color="primary" class="bb" @click="listarIngesos()"
-          >Listar Usuarios
-        </q-btn>
-        <q-btn color="green" class="bb" @click="abrir(1)">Añadir Usuario</q-btn>
-      </div>
+   <q-select
+    v-model="selectedSedeId"
+    :options="options"
+    label="Seleccionar Cliente"
+    class="select"
+  />
+  <q-btn color="green" class="bb" icon="search" @click="buscarUsuario">
+    Buscar Sede
+  </q-btn>
+  <q-btn color="primary" class="bb" @click="listarUsuariosActivos()">
+    Listar Usuarios Activos
+  </q-btn>
+  <q-btn color="primary" class="bb" @click="listarUsuariosInactivo()">
+    Listar Usuarios Inactivos
+  </q-btn>
+  <q-btn color="primary" class="bb" @click="listarIngesos()">Listar Usuarios</q-btn>
+  <q-btn color="green" class="bb" @click="abrir(1)">Añadir Usuario</q-btn>
+</div>
+
 
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 500px">
@@ -151,6 +159,8 @@ let email = ref("");
 let direccion = ref("");
 let telefono = ref("");
 let rol = ref("");
+let options = ref([]);
+let selectedSedeId = ref(null);
 let roles = ref([
   { label: "Admin", value: "admin" },
   { label: "Instructor", value: "instructor" },
@@ -186,6 +196,11 @@ let listarIngesos = async () => {
   r = await useUsuario.getUsuario();
 
   rows.value = r.usuario;
+
+  options.value = r.usuario.map((usuarios) => ({
+    label: usuarios.nombre,
+    value: usuarios._id,
+  }));
   console.log(r);
 };
 let alert = ref(false);
@@ -340,6 +355,24 @@ const togglePlanStatus = async (usuario) => {
     Notify.create("Error al cambiar el estado del plan");
   }
 };
+const buscarUsuario = async () => {
+  try {
+    if (selectedSedeId.value) {
+      const res = await useUsuario.getusuarioID(selectedSedeId.value.value);
+      if (res && res.usuario) {
+        rows.value = [res.usuario];
+        Notify.create("Sede encontrada");
+      } else {
+        Notify.create("No se encontró la sede");
+      }
+    } else {
+      Notify.create("Por favor ingrese un ID de sede");
+    }
+  } catch (error) {
+    console.error("Error al buscar la sede:", error);
+    Notify.create("Error al buscar la sede");
+  }
+};
 onMounted(() => {
   listarIngesos();
 });
@@ -416,5 +449,20 @@ onMounted(() => {
 .q-table th {
   position: relative;
   font-size: 25px !important;
+}
+/* Estilos para el select */
+.select {
+  min-width: 300px; /* Ajusta el ancho mínimo según tus necesidades */
+  font-size: 16px; /* Tamaño de fuente */
+  border-radius: 8px; /* Bordes redondeados */
+  height: 80px;
+}
+
+/* Estilo para el icono desplegable del select */
+.q-select .q-field__native .q-field__bottom-right .q-field__append .q-select__dropdown-icon {
+  font-size: 20px; /* Tamaño del icono */
+}
+.btn >*{
+   border-radius: 30px;
 }
 </style>

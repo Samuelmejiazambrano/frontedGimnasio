@@ -216,7 +216,6 @@ async function agregarCliente() {
       plan: plan.value,
     });
 
-    // newlyAddedClienteId.value = response._id;
     cerrar();
     listarCliente();
   } catch (error) {
@@ -224,9 +223,46 @@ async function agregarCliente() {
   }
 }
 
-async function guardarSeguimiento() {
+// async function guardarSeguimiento(cliente) {
+//   try {
+//     let seguimientoData = {
+//       peso: peso.value,
+//       imc: imc.value,
+//       brazo: brazo.value,
+//       cintura: cintura.value,
+//       pie: pie.value,
+//       estatura: estatura.value,
+//     };
+
+//     if (currentSeguimientoId.value) {
+//       console.log(currentId.value);
+//       await useCliente.actualizarSeguimiento(
+//         currentId.value,
+//         currentSeguimientoId.value,
+//         seguimientoData
+//       );
+//     } else {
+//       if (currentId.value) {
+//       console.log(currentId);
+//         await useCliente.postSeguimiento(cliente, seguimientoData);
+//       } else {
+//         console.error("Error: No client selected for adding seguimiento");
+//         return;
+//       }
+//     }
+
+//     cerrarSeguimiento();
+//     listarCliente();
+//   } catch (error) {
+//     console.error("Error al guardar seguimiento:", error);
+//   }
+// }
+async function agregarSeguimiento(cliente) {
+    let response = await useCliente.postSeguimiento(cliente, seguimientoData);
+
   try {
     let seguimientoData = {
+      fechaIngreso: new Date(),
       peso: peso.value,
       imc: imc.value,
       brazo: brazo.value,
@@ -234,29 +270,19 @@ async function guardarSeguimiento() {
       pie: pie.value,
       estatura: estatura.value,
     };
-
-    if (currentSeguimientoId.value) {
-      console.log(currentId.value);
-      await useCliente.actualizarSeguimiento(
-        currentId.value,
-        currentSeguimientoId.value,
-        seguimientoData
-      );
-    } else {
-      if (currentId.value) {
-        await useCliente.postSeguimiento(currentId.value, seguimientoData);
-      } else {
-        console.error("Error: No client selected for adding seguimiento");
-        return;
-      }
-    }
-
+    let response = await useCliente.postSeguimiento(cliente, seguimientoData);
+    
+    console.log("Respuesta del servidor:", response);
     cerrarSeguimiento();
     listarCliente();
   } catch (error) {
-    console.error("Error al guardar seguimiento:", error);
+    console.error("Error al agregar seguimiento:", error);
+    console.log(response);
+    
   }
 }
+
+
 
 const desactivarCliente = async (cliente) => {
   try {
@@ -506,7 +532,7 @@ onMounted(() => {
                   />
                   <q-card-actions align="right">
                     <q-btn
-                      @click="guardarSeguimiento()"
+                      @click="agregarSeguimiento(props.rows)"
                       color="red"
                       class="text-white"
                     >

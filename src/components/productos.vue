@@ -1,31 +1,36 @@
 <template>
   <div id="zzz">
     <h2 class="title">Lista de Sedes</h2>
-  <div class="btn">
-        <q-btn
-          color="green"
-          class="qqq"
-          icon="add_location"
-          @click="abrir(1)">
-          agregar
-        </q-btn>
-        <q-btn color="primary" class="sa" @click="listarIngesos()"
-          >Listar Usuarios
-        </q-btn>
-        <q-btn color="primary" class="sa" @click="listarSedeActivos()"
-          >Listar Sedes Activos</q-btn
-        >
-        <q-btn color="primary" class="sa" @click="listarSedeInactivo()"
-          >Listar Sedes Inactivos</q-btn
-        >
-      </div>
+        <div class="q-pa-md" id="cont">
+
+    <div class="btn">
+   
+         <q-select
+         class="select"
+          v-model="selectedSedeId"
+          :options="options"
+          label="Seleccionar Cliente"
+        />
+      <q-btn color="green" class="qqq" icon="search" @click="buscarSede">
+        Buscar Sede
+      </q-btn>
+      <q-btn color="green" class="qqq" icon="add_location" @click="abrir(1)">
+        agregar
+      </q-btn>
+      <q-btn color="primary" class="sa" @click="listarIngesos()">
+        Listar Usuarios
+      </q-btn>
+      <q-btn color="primary" class="sa" @click="listarSedeActivos()">
+        Listar Sedes Activos
+      </q-btn>
+      <q-btn color="primary" class="sa" @click="listarSedeInactivo()">
+        Listar Sedes Inactivos
+      </q-btn>
+    </div>
     <div style="width: 150vh">
-    
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 700px">
-          <q-card-section
-            style="background-color: #344860; margin-bottom: 20px"
-          >
+          <q-card-section style="background-color: #344860; margin-bottom: 20px">
             <div class="text-h6 text-white">
               {{ accion == 1 ? "Agregar Instructor" : "Editar Instructor" }}
             </div>
@@ -44,7 +49,6 @@
             class="q-my-md q-mx-md"
             type="text"
           />
-
           <q-input
             outlined
             v-model="direccion"
@@ -52,7 +56,6 @@
             class="q-my-md q-mx-md"
             type="text"
           />
-
           <q-input
             outlined
             v-model="hora"
@@ -74,7 +77,6 @@
             label="Telefono"
             class="q-my-md q-mx-md"
           />
-
           <q-card-actions align="right">
             <q-btn
               @click="accion === 1 ? agregarSede() : editarSede()"
@@ -99,13 +101,12 @@
           class="tabla"
         >
           <template v-slot:body-cell-createAt="props">
-                <q-td :props="props">
-                  {{ moment(props.row.createAt).format("dddd, D MMMM YYYY") }}
-                </q-td>
-              </template>
+            <q-td :props="props">
+              {{ moment(props.row.createAt).format("dddd, D MMMM YYYY") }}
+            </q-td>
+          </template>
           <template v-slot:body-cell-estado="props">
             <q-td :props="props">
-            
               <div class="q-pa-md q-gutter-sm"></div>
               <p :style="{ color: props.row.estado == 1 ? 'green' : 'red' }">
                 {{ props.row.estado == 1 ? "Activo" : "Inactivo" }}
@@ -128,7 +129,10 @@
       </div>
     </div>
   </div>
+    </div>
+
 </template>
+
 
 <script setup>
 import { ref, onMounted } from "vue";
@@ -136,6 +140,7 @@ import { useSedeStore } from "../stores/sede.js";
 import moment from "moment";
 import "moment/locale/es";
 import { Notify } from "quasar";
+
 let alert = ref(false);
 let nombre = ref("");
 let correo = ref("");
@@ -146,6 +151,9 @@ let ciudad = ref("");
 let telefono = ref("");
 let accion = ref(1);
 let currentId = ref(null);
+let selectedSedeId = ref(null);
+let options = ref([]); // Declaramos una referencia para las opciones del select
+
 
 let useSede = useSedeStore();
 
@@ -169,53 +177,78 @@ let r = null;
 
 let listarIngesos = async () => {
   r = await useSede.getSede();
-
   rows.value = r.sedes;
+  options.value = r.sedes.map((sedes) => ({
+    label: sedes.nombre,
+    value: sedes._id,
+  }));
   console.log(r);
 };
+
 const listarSedeActivos = async () => {
   try {
     const res = await useSede.getSedeActivos();
     rows.value = res.sedes;
-    Notify.create("Error al obtener usuarios activos");
   } catch (error) {
-    console.error("Error al listar usuarios activos:", error);
-    Notify.create("Error al obtener usuarios activos");
+    console.error("Error al listar sedes activas:", error);
+    Notify.create("Error al obtener sedes activas");
   }
 };
+
 const listarSedeInactivo = async () => {
   try {
     const res = await useSede.getSedeInactivos();
     rows.value = res.sedes;
-    Notify.create("Error al obtener usuarios activos");
   } catch (error) {
-    console.error("Error al listar usuarios activos:", error);
-    Notify.create("Error al obtener usuarios activos");
+    console.error("Error al listar sedes inactivas:", error);
+    Notify.create("Error al obtener sedes inactivas");
   }
 };
+
+const buscarSede = async () => {
+  try {
+    if (selectedSedeId.value) {
+      const res = await useSede.getSedeID(selectedSedeId.value.value);
+      if (res && res.sedes) {
+        rows.value = [res.sedes];
+        Notify.create("Sede encontrada");
+      } else {
+        Notify.create("No se encontró la sede");
+      }
+    } else {
+      Notify.create("Por favor ingrese un ID de sede");
+    }
+  } catch (error) {
+    console.error("Error al buscar la sede:", error);
+    Notify.create("Error al buscar la sede");
+  }
+};
+
 function abrir(accionModal) {
   accion.value = accionModal;
   alert.value = true;
 }
+
 function cerrar() {
   alert.value = false;
 }
+
 let expresiontel = /^\d{8,}$/;
 let verifitel = expresiontel.test(telefono.value);
 
 const agregarSede = async () => {
   if (codigo.value == "") {
-    Notify.create("por favor ingrese su codigo ");
+    Notify.create("Por favor ingrese su codigo");
   } else if (nombre.value == "") {
-    Notify.create("por favor ingrese el nombre ");
+    Notify.create("Por favor ingrese el nombre");
   } else if (direccion.value == "") {
-    Notify.create("por favor ingrese la direccion");
+    Notify.create("Por favor ingrese la direccion");
   } else if (telefono.value.length !== 10) {
     Notify.create("El teléfono debe tener exactamente 10 números");
   } else if (hora.value == "") {
-    Notify.create("por favor ingrese el hora ");
+    Notify.create("Por favor ingrese el horario");
   } else if (ciudad.value == "") {
-    Notify.create("por favor ingrese la ciudad");
+    Notify.create("Por favor ingrese la ciudad");
   } else {
     try {
       await useSede.agregarSede({
@@ -229,10 +262,12 @@ const agregarSede = async () => {
       cerrar();
       listarIngesos();
     } catch (error) {
-      console.error("Error al agregar inventario:", error);
+      console.error("Error al agregar la sede:", error);
+      Notify.create("Error al agregar la sede");
     }
   }
 };
+
 const cargarDatosUsuario = (usuario) => {
   currentId.value = usuario._id;
   nombre.value = usuario.nombre;
@@ -241,22 +276,22 @@ const cargarDatosUsuario = (usuario) => {
   hora.value = usuario.horario;
   ciudad.value = usuario.ciudad;
   telefono.value = usuario.telefono;
-
   abrir(2);
 };
+
 const editarSede = async () => {
   if (codigo.value == "") {
-    Notify.create("por favor ingrese su codigo ");
+    Notify.create("Por favor ingrese su codigo");
   } else if (nombre.value == "") {
-    Notify.create("por favor ingrese el nombre ");
+    Notify.create("Por favor ingrese el nombre");
   } else if (direccion.value == "") {
-    Notify.create("por favor ingrese la direccion");
+    Notify.create("Por favor ingrese la direccion");
   } else if (telefono.value == "") {
-    Notify.create("por favor ingrese el telefono");
+    Notify.create("Por favor ingrese el telefono");
   } else if (hora.value == "") {
-    Notify.create("por favor ingrese el hora ");
+    Notify.create("Por favor ingrese el horario");
   } else if (ciudad.value == "") {
-    Notify.create("por favor ingrese la ciudad");
+    Notify.create("Por favor ingrese la ciudad");
   } else {
     try {
       await useSede.actualizarSede({
@@ -271,22 +306,24 @@ const editarSede = async () => {
       cerrar();
       listarIngesos();
     } catch (error) {
-      console.error("Error al agregar inventario:", error);
+      console.error("Error al editar la sede:", error);
+      Notify.create("Error al editar la sede");
     }
   }
 };
+
 const desactivarSede = async (plan) => {
   try {
     if (plan && plan._id) {
       await useSede.desactivarSede(plan);
-      Notify.create("Plan desactivado correctamente");
-      listarIngesos(); // Actualizar la lista de planes después de desactivar uno
+      Notify.create("Sede desactivada correctamente");
+      listarIngesos();
     } else {
-      Notify.create("Plan no válido");
+      Notify.create("Sede no válida");
     }
   } catch (error) {
-    console.error("Error al desactivar plan:", error);
-    Notify.create("Error al desactivar plan");
+    console.error("Error al desactivar la sede:", error);
+    Notify.create("Error al desactivar la sede");
   }
 };
 
@@ -294,14 +331,14 @@ const activarSede = async (plan) => {
   try {
     if (plan && plan._id) {
       await useSede.activarSede(plan);
-      Notify.create("Plan activado correctamente");
+      Notify.create("Sede activada correctamente");
       listarIngesos();
     } else {
-      Notify.create("Plan no válido");
+      Notify.create("Sede no válida");
     }
   } catch (error) {
-    console.error("Error al activar plan:", error);
-    Notify.create("Error al activar plan");
+    console.error("Error al activar la sede:", error);
+    Notify.create("Error al activar la sede");
   }
 };
 
@@ -313,14 +350,16 @@ const togglePlanStatus = async (plan) => {
       await activarSede(plan);
     }
   } catch (error) {
-    console.error("Error al cambiar el estado del plan:", error);
-    Notify.create("Error al cambiar el estado del plan");
+    console.error("Error al cambiar el estado de la sede:", error);
+    Notify.create("Error al cambiar el estado de la sede");
   }
 };
+
 onMounted(() => {
   listarIngesos();
 });
 </script>
+
 
 <style scoped>
 /* Estilos para el título */
@@ -364,6 +403,9 @@ onMounted(() => {
   width: 100%;
   font-family: "Roboto", sans-serif;
 }
+.select{
+width: 300px;
+}
 
 .btn {
   display: flex;
@@ -371,5 +413,8 @@ onMounted(() => {
   justify-content: flex-end;
  align-items: flex-end;
   gap: 10px;
+}
+.btn >*{
+   border-radius: 30px;
 }
 </style>

@@ -9,7 +9,11 @@ export const usePlanStore = defineStore("planes", () => {
     let getPlan = async () => {
 
         try {
-            let res = await axios.get("http://localhost:4600/api/plan");
+            let res = await axios.get("http://localhost:4600/api/plan",{
+              headers: {
+                "x-token":useUsuario.token,
+              },
+            });
             console.log(res);
             return res.data;
         } catch (error) {
@@ -19,7 +23,11 @@ export const usePlanStore = defineStore("planes", () => {
     };
     let getPlanActivos = async () => {
         try {
-          let res = await axios.get("http://localhost:4600/api/plan/activos");
+          let res = await axios.get("http://localhost:4600/api/plan/activos",{
+            headers: {
+              "x-token":useUsuario.token,
+            },
+          });
           console.log(res);
           return res.data;
         } catch (error) {
@@ -29,7 +37,11 @@ export const usePlanStore = defineStore("planes", () => {
       };
       let getPlanInactivos = async () => {
         try {
-          let res = await axios.get("http://localhost:4600/api/plan/inactivos");
+          let res = await axios.get("http://localhost:4600/api/plan/inactivos",{
+            headers: {
+              "x-token":useUsuario.token,
+            },
+          });
           console.log(res);
           return res.data;
         } catch (error) {
@@ -51,20 +63,15 @@ export const usePlanStore = defineStore("planes", () => {
             throw error; // Propagar el error para manejarlo en el componente
           }
     };
-    // let activarPlan = async (plan) => {
-    //     try {
-    //         const res = await axios.put(`http://localhost:4600/api/plan/activar/${plan._id}`);
-    //         console.log("plan agregado:", res.data);
-           
-    //       } catch (error) {
-    //         console.error("Error al agregar plan:", error);
-    //         throw error; // Propagar el error para manejarlo en el componente
-    //       }
-    // };
+
     
     let UpdatePlan = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/plan/actualizar/${usuario._id}`, usuario);
+            const res = await axios.put(`http://localhost:4600/api/plan/actualizar/${usuario._id}`, usuario,{
+              headers: {
+                "x-token":useUsuario.token
+              },
+            });
             console.log("Usuario actualizado:", res.data);
         } catch (error) {
             console.error("Error al actualizar usuario:", error);
@@ -73,7 +80,12 @@ export const usePlanStore = defineStore("planes", () => {
     };
     let desactivarPlan = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/plan/desactivar/${usuario._id}`);
+            const res = await axios.put(`http://localhost:4600/api/plan/desactivar/${usuario._id}`,"",{
+              headers: {
+                "x-token":useUsuario.token,
+              },
+            });
+            
             console.log("plan desactivado:", res.data);
         } catch (error) {
             console.error("Error al desactivar plan:", error);
@@ -82,14 +94,31 @@ export const usePlanStore = defineStore("planes", () => {
     };
     let activarPlan = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/plan/activar/${usuario._id}`);
+            const res = await axios.put(`http://localhost:4600/api/plan/activar/${usuario._id}`,"",{
+              headers: {
+                "x-token":useUsuario.token,
+              },
+            });
             console.log("Usuario desactivado:", res.data);
         } catch (error) {
             console.error("Error al desactivar plan:", error);
             throw error;
         }
     };
+    const getPlanID = async (planId) => {
+      try {
+          let res = await axios.get(`http://localhost:4600/api/plan/${planId}`,{
+            headers: {
+              "x-token":useUsuario.token,
+            },
+          });
+          return res.data;
+      } catch (error) {
+          console.log(error);
+          return error;
+      }
+  };
     return {
-        getPlan,agregarPlan,activarPlan,UpdatePlan,desactivarPlan,getPlanActivos,getPlanInactivos
+        getPlan,agregarPlan,activarPlan,UpdatePlan,desactivarPlan,getPlanActivos,getPlanInactivos,getPlanID
     };
 });

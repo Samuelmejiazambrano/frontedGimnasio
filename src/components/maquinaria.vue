@@ -4,6 +4,16 @@
         <h2 class="title">Lista de Maquinaria</h2>
 
       <div class="btn">
+      
+         <q-select
+         class="select"
+          v-model="selectedSedeId"
+          :options="options"
+          label="Seleccionar Cliente"
+        />
+         <q-btn color="green" class="qqq" icon="search" @click="buscarMaquinaria">
+        Buscar Sede
+      </q-btn>
         <q-btn color="primary" class="sa" @click="listarMaquinariaActivos()">
           Listar Maquinaria Activos
         </q-btn>
@@ -162,6 +172,9 @@ const fecha = ref("");
 const FechaUmantenimiento = ref("");
 const accion = ref(1);
 const sedes = ref([]);
+let options = ref([]); 
+let selectedSedeId = ref(null);
+
 const currentId = ref(null);
 
 const abrir = (accionModal) => {
@@ -188,8 +201,31 @@ const listarMaquinas = async () => {
       nombreSede: sede ? sede.nombre : "N/A",
     };
   });
+  
+  
+   options.value =response.maquinarias.map((maquinaria) => ({
+    label: maquinaria.descripcion,
+    value: maquinaria._id,
+  }));
 };
-
+const buscarMaquinaria = async () => {
+  try {
+    if (selectedSedeId.value) {
+      const res = await useMaquina.getMaquinariaID(selectedSedeId.value.value);
+      if (res && res.maquinarias) {
+        rows.value = [res.maquinarias];
+        Notify.create("Sede encontrada");
+      } else {
+        Notify.create("No se encontró la sede");
+      }
+    } else {
+      Notify.create("Por favor ingrese un ID de sede");
+    }
+  } catch (error) {
+    console.error("Error al buscar la sede:", error);
+    Notify.create("Error al buscar la sede");
+  }
+};
 onMounted(() => {
   listarMaquinas();
 });
@@ -361,5 +397,12 @@ onMounted(() => {
   gap: 10px !important;
   width: 90%;
   margin-top: 20px;
+  
 }
+.btn >*{
+   border-radius: 30px;
+}
+.select{
+
+width: 300px;}
 </style>

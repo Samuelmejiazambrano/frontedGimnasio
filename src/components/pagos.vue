@@ -25,7 +25,7 @@
             label="Pagos"
             class="q-my-md q-mx-md"
             :options="
-              plan.map((planes) => ({
+              planList.map((planes) => ({
                 label: planes.descripcion,
                 value: planes._id,
               }))
@@ -69,15 +69,24 @@
     </div>
 
     <div class="q-pa-md">
-      <div
-        style="
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-        "
-      >
-        <q-btn color="green" class="ff" @click="abrir(1)"
+      <div class="btn" >
+        
+         <q-select
+         class="select"
+          v-model="selectedSedeId"
+          :options="options"
+          label="Seleccionar Cliente"
+        />
+         <q-btn color="green"  icon="search" @click="buscarPago">
+        Buscar Pago
+      </q-btn>
+        <q-btn color="primary" class="bb" @click="listarPagosActivos()">
+    Listar Pagos Activos
+  </q-btn>
+  <q-btn color="primary" class="bb" @click="listarPagosInactivo()">
+    Listar Pagos Inactivos
+  </q-btn>
+        <q-btn color="green"  @click="abrir(1)"
           >Añadir Producto</q-btn
         >
       </div>
@@ -90,20 +99,20 @@
         class="rounded-borders"
         dense
       >
- 
-
-
-        <template v-slot:body-cell-opciones="props">
+         <template v-slot:body-cell-estado="props">
           <q-td :props="props">
-            <div class="q-pa-md q-gutter-sm-estado"></div>
+            <div class="q-pa-md q-gutter-sm"></div>
             <p :style="{ color: props.row.estado == 1 ? 'green' : 'red' }">
               {{ props.row.estado == 1 ? "Activo" : "Inactivo" }}
             </p>
           </q-td>
+        </template>
+        <template v-slot:body-cell-opciones="props">
           <q-td :props="props" class="q-pr-xs">
+         
             <q-btn @click="togglePlanStatus(props.row)">
               <span role="img" aria-label="Toggle">
-                {{ props.row.estado == 1 ? "❌" : "✅" }}
+                {{ props.row.estado === 1 ? "❌" : "✅" }}
               </span>
             </q-btn>
             <q-btn @click="cargarDatosPago(props.row)">
@@ -129,6 +138,11 @@ let valor = ref("");
 let accion = ref(1);
 let clientes = ref([]);
 let plan = ref([]);
+let planList = ref("");
+let options = ref([]); 
+let selectedSedeId = ref(null);
+
+
 let currentId = ref(null);
 
 let usePago = usePagoStore();
@@ -180,9 +194,9 @@ let listarPagos = async () => {
     clientes.value = responseCliente.cliente;
 
     let responsePlan = await usePago.getPlan();
-    let planList = responsePlan.planes;
+    planList = responsePlan.planes;
 
-    // Mapear la lista de pagos y asignar el nombre del 
+    // Mapear la lista de pagos y asignar el nombre del
     rows.value = rows.value.map((pagos) => {
       let plan = planList.find((plan) => plan._id === pagos.plan);
       return {
@@ -190,12 +204,15 @@ let listarPagos = async () => {
         nombrePlan: plan ? plan.descripcion : "N/A",
       };
     });
+    options.value =response.pagos.map((pago) => ({
+    label: pago.codigo,
+    value: pago._id,
+  }));
   } catch (error) {
     console.error("Error al obtener los pagos:", error);
     Notify.create("Error al obtener los pagos");
   }
 };
-
 
 const cargarDatosPago = (usuario) => {
   codigo.value = usuario.codigo;
@@ -268,7 +285,48 @@ const togglePlanStatus = async (pagos) => {
     Notify.create("Error al cambiar el estado del plan");
   }
 };
-// Ejecutar la función listarPagos al montar el componente
+const buscarPago = async () => {
+  try {
+    if (selectedSedeId.value) {
+      const res = await usePago.getPagoID(selectedSedeId.value.value);
+      console.log(res);
+      console.log("hola");
+      if (res && res.pagos) {
+        rows.value = [res.pagos];
+        Notify.create("pagos encontrada");
+      } else {
+        Notify.create("No se encontró la pagos");
+      }
+    } else {
+      Notify.create("Por favor ingrese un ID de sede");
+    }
+  } catch (error) {
+    console.error("Error al buscar la sede:", error);
+    Notify.create("Error al buscar la sede");
+  }
+};
+
+const listarPagosActivos = async () => {
+  try {
+    const res = await usePago.getPagoActivos();
+    console.log(res);
+    rows.value = res;
+    Notify.create(" usuarios activos");
+  } catch (error) {
+    console.error("Error al listar usuarios activos:", error);
+    Notify.create("Error al obtener usuarios activos");
+  }
+};
+const listarPagosInactivo = async () => {
+  try {
+    const res = await usePago.getPagoInactivos();
+    rows.value = res;
+    Notify.create("obtener usuarios activos");
+  } catch (error) {
+    console.error("Error al listar usuarios activos:", error);
+    Notify.create("Error al obtener usuarios activos");
+  }
+};
 onMounted(() => {
   listarPagos();
 });
@@ -340,5 +398,21 @@ onMounted(() => {
 
 .ff {
   top: -30px;
+}
+.btn {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100%;
+  margin-top: 20px;
+  
+}
+.select{
+width: 300px;
+}
+.btn >*{
+   border-radius: 30px;
 }
 </style>

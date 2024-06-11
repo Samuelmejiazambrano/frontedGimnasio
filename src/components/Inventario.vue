@@ -159,6 +159,7 @@ const listarInventario = async () => {
   const response = await useInventario.getInventario();
   total.value = await useInventario.getTotal();
   console.log(total.value);
+  
   rows.value = response.inventarios;
 };
 const formattedDate = moment().format("dddd, D MMMM YYYY");

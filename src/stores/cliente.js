@@ -1,10 +1,17 @@
 import { defineStore } from "pinia";
 import axios from "axios";
+import { useUsuarioStore } from "../stores/usuario.js";
 
 export const useClienteStore = defineStore("Cliente", () => {
+    let useUsuario = useUsuarioStore();
+
     let getCliente = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/clientes");
+            let res = await axios.get("http://localhost:4600/api/clientes",{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             return res.data;
         } catch (error) {
             console.log(error);
@@ -14,7 +21,11 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let getCumpleanos = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/clientes/listar/cumpleanos");
+            let res = await axios.get("http://localhost:4600/api/clientes/listar/cumpleanos",{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             return res.data;
         } catch (error) {
             console.log(error);
@@ -24,7 +35,11 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let totalCliente = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/clientes/total/clientes");
+            let res = await axios.get("http://localhost:4600/api/clientes/total/clientes",{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             return res.data;
         } catch (error) {
             console.log(error);
@@ -34,7 +49,11 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     const getClientesPorPlan = async (planId) => {
         try {
-            let res = await axios.get(`http://localhost:4600/api/clientes/clientes/plan/${planId}`);
+            let res = await axios.get(`http://localhost:4600/api/clientes/clientes/plan/${planId}`,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             return res.data;
         } catch (error) {
             console.log(error);
@@ -44,7 +63,11 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let getPlan = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/plan");
+            let res = await axios.get("http://localhost:4600/api/plan",{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             return res.data;
         } catch (error) {
             console.log(error);
@@ -54,7 +77,11 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let postCliente = async (ingreso) => {
         try {
-            let res = await axios.post("http://localhost:4600/api/clientes", ingreso);
+            let res = await axios.post("http://localhost:4600/api/clientes", ingreso,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             return res.data;
         } catch (error) {
             console.log(error);
@@ -63,18 +90,30 @@ export const useClienteStore = defineStore("Cliente", () => {
     };
 
     let postSeguimiento = async (usuario, seguimientoData) => {
-        try {
-            let res = await axios.post(`http://localhost:4600/api/clientes/seguimiento/${usuario._id}`, seguimientoData);
-            return res.data;
-        } catch (error) {
-            console.error("Error al realizar la solicitud:", error);
-            throw error;
-        }
-    };
+      if (!usuario || !usuario.id) {
+          throw new Error("Usuario inválido. No se puede agregar seguimiento.");
+      }
+      try {
+          let res = await axios.post(`http://localhost:4600/api/clientes/seguimiento/${usuario.id}`, seguimientoData,"", {
+              headers: {
+                  "x-token": useUsuario.token,
+              },
+          });
+          return res.data;
+      } catch (error) {
+          console.error("Error al realizar la solicitud:", error);
+          throw error;
+      }
+  };
+  
 
     let desactivarCliente = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/clientes/desactivar/${usuario._id}`);
+            const res = await axios.put(`http://localhost:4600/api/clientes/desactivar/${usuario._id}`,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log("Cliente desactivado:", res.data);
         } catch (error) {
             console.error("Error al desactivar cliente:", error);
@@ -84,7 +123,11 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let activarCliente = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/clientes/activar/${usuario._id}`);
+            const res = await axios.put(`http://localhost:4600/api/clientes/activar/${usuario._id}`,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log("Cliente activado:", res.data);
         } catch (error) {
             console.error("Error al activar cliente:", error);
@@ -94,7 +137,11 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let actualizarCliente = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/clientes/${usuario._id}`, usuario);
+            const res = await axios.put(`http://localhost:4600/api/clientes/${usuario._id}`, usuario,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log("Cliente actualizado:", res.data);
         } catch (error) {
             console.error("Error al actualizar cliente:", error);
@@ -104,7 +151,11 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let actualizarSeguimiento = async (clienteId, seguimientoId, datosSeguimiento) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/clientes/${clienteId}/seguimiento/${seguimientoId}`, datosSeguimiento);
+            const res = await axios.put(`http://localhost:4600/api/clientes/${clienteId}/seguimiento/${seguimientoId}`, datosSeguimiento,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             console.log("Seguimiento actualizado:", res.data);
             return res.data;
         } catch (error) {
@@ -114,7 +165,11 @@ export const useClienteStore = defineStore("Cliente", () => {
     };
     const getClienteID = async (planId) => {
         try {
-            let res = await axios.get(`http://localhost:4600/api/clientes/${planId}`);
+            let res = await axios.get(`http://localhost:4600/api/clientes/${planId}`,{
+                headers: {
+                  "x-token":useUsuario.token,
+                },
+              });
             return res.data;
         } catch (error) {
             console.log(error);
