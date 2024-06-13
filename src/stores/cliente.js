@@ -89,22 +89,24 @@ export const useClienteStore = defineStore("Cliente", () => {
         }
     };
 
-    let postSeguimiento = async (usuario, seguimientoData) => {
-      if (!usuario || !usuario.id) {
-          throw new Error("Usuario inválido. No se puede agregar seguimiento.");
-      }
-      try {
-          let res = await axios.post(`http://localhost:4600/api/clientes/seguimiento/${usuario.id}`, seguimientoData,"", {
-              headers: {
-                  "x-token": useUsuario.token,
-              },
-          });
-          return res.data;
-      } catch (error) {
-          console.error("Error al realizar la solicitud:", error);
-          throw error;
-      }
-  };
+ // cliente.js
+let postSeguimiento = async (usuarioId, seguimientoData) => {
+  try {
+  console.log(usuarioId);
+    let res = await axios.post(`http://localhost:4600/api/clientes/seguimiento/${usuarioId}`, seguimientoData, {
+      headers: {
+        "x-token": useUsuario.token,
+      },
+    });
+
+    console.log(usuarioId);
+    return res.data;
+  } catch (error) {
+    console.error("Error al realizar la solicitud:", error);
+    throw error;
+  }
+};
+
   
 
     let desactivarCliente = async (usuario) => {
@@ -150,19 +152,21 @@ export const useClienteStore = defineStore("Cliente", () => {
     };
 
     let actualizarSeguimiento = async (clienteId, seguimientoId, datosSeguimiento) => {
-        try {
-            const res = await axios.put(`http://localhost:4600/api/clientes/${clienteId}/seguimiento/${seguimientoId}`, datosSeguimiento,{
-                headers: {
-                  "x-token":useUsuario.token,
-                },
-              });
-            console.log("Seguimiento actualizado:", res.data);
-            return res.data;
-        } catch (error) {
-            console.error("Error al actualizar seguimiento:", error);
-            throw error;
-        }
+      try {
+        const res = await axios.put(`http://localhost:4600/api/clientes/${clienteId}/seguimiento/${seguimientoId}`, datosSeguimiento, {
+          headers: {
+            "x-token": useUsuario.token,
+          },
+        });
+        console.log("Seguimiento actualizado:", res.data);
+        return res.data;
+      } catch (error) {
+        console.error("Error al actualizar seguimiento:", error);
+        throw error;
+      }
     };
+    
+    
     const getClienteID = async (planId) => {
         try {
             let res = await axios.get(`http://localhost:4600/api/clientes/${planId}`,{

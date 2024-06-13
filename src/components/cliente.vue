@@ -33,6 +33,7 @@ let columns = ref([
   { name: "nombrePlan", label: "Plan", align: "center", field: "nombrePlan" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
+
 let accion = ref(1);
 let cc = ref("");
 let nombre = ref("");
@@ -70,15 +71,13 @@ function abrir(accionModal) {
 
 let currentSeguimientoId = ref(null);
 
-function abrirSeguimiento(clienteId) {
-  currentId.value = clienteId;
+function abrirSeguimiento(cliente) {
+  currentId.value = cliente._id; // Asegúrate de que cliente tiene la propiedad _id
   seguimientoAlert.value = true;
-  console.log(currentId);
+  console.log(currentId.value);
 }
 
 function mostrarSeguimientos(seguimiento, cliente) {
-  console.log("Mostrar seguimiento:", seguimiento);
-
   peso.value = seguimiento.peso;
   imc.value = seguimiento.imc;
   brazo.value = seguimiento.brazo;
@@ -89,9 +88,7 @@ function mostrarSeguimientos(seguimiento, cliente) {
   currentId.value = cliente._id;
   currentSeguimientoId.value = seguimiento._id;
 
-  console.log(cliente);
-
-  abrirSeguimiento(cliente._id);
+  seguimientoAlert.value = true;
 }
 
 function cerrar() {
@@ -107,10 +104,9 @@ function cargarDatosIngresos(cliente) {
   telefono.value = cliente.telefono;
   foto.value = cliente.foto;
   plan.value = cliente.plan;
-
-  abrir(2);
-  console.log(currentId);
+  abrir(2); // Esto abre el formulario de edición
 }
+
 const editarCliente = async () => {
   try {
     await useCliente.actualizarCliente({
@@ -125,7 +121,7 @@ const editarCliente = async () => {
       plan: plan.value,
     });
     cerrar();
-    listarCliente(); // Actualizar la lista de clientes después de la edición
+    listarCliente();
   } catch (error) {
     console.error("Error al editar cliente:", error);
   }
@@ -133,7 +129,14 @@ const editarCliente = async () => {
 function cerrarSeguimiento() {
   seguimientoAlert.value = false;
   seguimientoDialog.value = false;
+  peso.value = "";
+  imc.value = "";
+  brazo.value = "";
+  cintura.value = "";
+  pie.value = "";
+  estatura.value = "";
 }
+
 async function listarCliente() {
   try {
     let response = await useCliente.getCliente();
@@ -223,43 +226,7 @@ async function agregarCliente() {
   }
 }
 
-// async function guardarSeguimiento(cliente) {
-//   try {
-//     let seguimientoData = {
-//       peso: peso.value,
-//       imc: imc.value,
-//       brazo: brazo.value,
-//       cintura: cintura.value,
-//       pie: pie.value,
-//       estatura: estatura.value,
-//     };
-
-//     if (currentSeguimientoId.value) {
-//       console.log(currentId.value);
-//       await useCliente.actualizarSeguimiento(
-//         currentId.value,
-//         currentSeguimientoId.value,
-//         seguimientoData
-//       );
-//     } else {
-//       if (currentId.value) {
-//       console.log(currentId);
-//         await useCliente.postSeguimiento(cliente, seguimientoData);
-//       } else {
-//         console.error("Error: No client selected for adding seguimiento");
-//         return;
-//       }
-//     }
-
-//     cerrarSeguimiento();
-//     listarCliente();
-//   } catch (error) {
-//     console.error("Error al guardar seguimiento:", error);
-//   }
-// }
-async function agregarSeguimiento(cliente) {
-    let response = await useCliente.postSeguimiento(cliente, seguimientoData);
-
+async function agregarSeguimiento() {
   try {
     let seguimientoData = {
       fechaIngreso: new Date(),
@@ -270,19 +237,15 @@ async function agregarSeguimiento(cliente) {
       pie: pie.value,
       estatura: estatura.value,
     };
-    let response = await useCliente.postSeguimiento(cliente, seguimientoData);
-    
-    console.log("Respuesta del servidor:", response);
+
+    // Llama a postSeguimiento pasando el ID del cliente
+    await useCliente.postSeguimiento(currentId.value, seguimientoData);
     cerrarSeguimiento();
     listarCliente();
   } catch (error) {
     console.error("Error al agregar seguimiento:", error);
-    console.log(response);
-    
   }
 }
-
-
 
 const desactivarCliente = async (cliente) => {
   try {
@@ -333,13 +296,38 @@ const togglePlanStatus = async (cliente) => {
     } else {
       await activarCliente(cliente);
     }
+    listarCliente();
   } catch (error) {
-    console.error("Error al cambiar el estado del cliente:", error);
-    Notify.create("Error al cambiar el estado del cliente");
+    console.error("Error al cambiar el estado del plan:", error);
   }
 };
+async function actualizarSeguimientos() {
+  try {
+    let seguimientoData = {
+      peso: peso.value,
+      imc: imc.value,
+      brazo: brazo.value,
+      cintura: cintura.value,
+      pie: pie.value,
+      estatura: estatura.value,
+    };
 
-onMounted(() => {
+    await useCliente.actualizarSeguimiento(
+      currentId.value,
+      currentSeguimientoId.value,
+      seguimientoData
+    );
+
+    Notify.create("Seguimiento actualizado correctamente");
+
+    cerrarSeguimiento();
+    listarCliente();
+  } catch (error) {
+    console.error("Error al actualizar seguimiento:", error);
+  }
+}
+
+onMounted(async () => {
   listarCliente();
   listarPlanes();
 });
@@ -439,7 +427,7 @@ onMounted(() => {
         />
         <q-btn @click="buscarCliente" color="primary" label="Buscar" />
       </div>
-   
+
       <div class="select">
         <q-select
           v-model="selectedPlan"
@@ -453,7 +441,7 @@ onMounted(() => {
         />
         <q-btn @click="listarClientesPorPlan" color="primary" label="Buscar" />
       </div>
-         <div class="select">
+      <div class="select">
         <q-btn color="green" class="sam" @click="abrir(1)"
           >Añadir Cliente</q-btn
         >
@@ -532,14 +520,17 @@ onMounted(() => {
                   />
                   <q-card-actions align="right">
                     <q-btn
-                      @click="agregarSeguimiento(props.rows)"
+                      @click="
+                        currentSeguimientoId
+                          ? actualizarSeguimientos()
+                          : agregarSeguimiento()
+                      "
                       color="red"
                       class="text-white"
                     >
                       {{ currentSeguimientoId ? "Editar" : "Guardar" }}
                     </q-btn>
-
-                    <q-btn color="black" outline @click="cerrarSeguimiento()"
+                    <q-btn color="black" outline @click="cerrarSeguimiento"
                       >Cerrar</q-btn
                     >
                   </q-card-actions>
@@ -553,6 +544,7 @@ onMounted(() => {
                 <q-card class="">
                   <q-card-section
                     style="background-color: #344860; margin-bottom: 20px"
+                    class="s"
                   >
                     <div class="text-h6 text-white">Seguimientos</div>
                   </q-card-section>
@@ -573,12 +565,13 @@ onMounted(() => {
                         <div>Estatura: {{ seguimiento.estatura }}</div>
                         <q-btn
                           @click="mostrarSeguimientos(seguimiento, props.row)"
+                          class="editar"
                           >Editar</q-btn
                         >
                       </q-card-section>
                     </q-card>
                   </q-card-section>
-                  <q-card-actions align="right">
+                  <q-card-actions align="center">
                     <q-btn color="black" outline @click="cerrarSeguimiento()"
                       >Cerrar</q-btn
                     >
@@ -590,7 +583,7 @@ onMounted(() => {
                 {{ props.row.estado == 1 ? "❌" : "✅" }}
               </span>
             </q-btn>
-            <q-btn class="sam" @click="abrirSeguimiento(props.row._id)">
+            <q-btn class="sam" @click="abrirSeguimiento(props.row)">
               <q-icon name="add_circle" />
             </q-btn>
             <q-btn @click="mostrarSeguimiento(props.row)">
@@ -654,25 +647,38 @@ onMounted(() => {
   width: 100%;
 }
 .seguimiento {
-  max-width: 500px;
-  width: 120vh;
+  max-width: 2000px;
+  width: 180vh;
 }
 
 .listaSeguimiento {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(400px, 2, 2fr)
+  ); /* Ajusta el tamaño mínimo y máximo de las columnas */
+  gap: 30px;
+  padding: 20px;
+  font-size: 16px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
 .listaSeguimiento q-card {
-  background-color: #f0f0f0; /* Cambia el color de fondo de las tarjetas */
-  border-radius: 8px; /* Añade bordes redondeados */
-  padding: 10px; /* Agrega un relleno interno */
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
 }
 
 .listaSeguimiento q-card-section {
-  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px; /* Ajusta el espaciado interno según sea necesario */
 }
+
 .search {
   display: flex;
   justify-content: flex-start;
@@ -690,5 +696,11 @@ onMounted(() => {
   align-items: center;
   width: 60%;
   flex-direction: column;
+}
+.s {
+  width: 100%;
+}
+.editar {
+  background: #b5bbc2;
 }
 </style>
