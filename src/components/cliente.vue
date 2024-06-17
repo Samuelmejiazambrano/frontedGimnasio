@@ -207,24 +207,86 @@ async function listarPlanes() {
 }
 
 async function agregarCliente() {
-  try {
-    let response = await useCliente.postCliente({
-      cc: cc.value,
-      nombre: nombre.value,
-      fechaIngreso: fechaIngreso.value,
-      fechaNac: fechaNac.value,
-      direccion: direccion.value,
-      telefono: telefono.value,
-      foto: foto.value,
-      plan: plan.value,
-    });
+  const namePattern = /^[A-Za-z\s]+$/;
+  if (!/^\d{8,}$/.test(cc.value)) {
+    Notify.create("por favor ingrese la cc");
+  } else if (!namePattern.test(nombre.value)) {
+    Notify.create("por favor ingrese el nombre ");
+  } else if (fechaIngreso.value == "") {
+    Notify.create("por favor ingrese la fecha de ingreso");
+  } else if (fechaNac.value == "") {
+    Notify.create("por favor ingrese la fechaNac");
+  } else if (direccion.value == "") {
+    Notify.create("por favor ingrese el telefono");
+  } else if (telefono.value.length !== 10) {
+    Notify.create("por favor ingrese el telefono  ");
+  } else if (foto.value == "") {
+    console.log(foto.value);
+    Notify.create("por favor ingrese la foto ");
+  } else if (plan.value == "") {
+    Notify.create("por favor ingrese el plan ");
+  } else {
+    try {
+      let response = await useCliente.postCliente({
+        cc: cc.value,
+        nombre: nombre.value,
+        fechaIngreso: fechaIngreso.value,
+        fechaNac: fechaNac.value,
+        direccion: direccion.value,
+        telefono: telefono.value,
+        foto: foto.value, // Ensure foto is included here
+        plan: plan.value,
+      });
 
-    cerrar();
-    listarCliente();
-  } catch (error) {
-    console.error("Error al agregar cliente:", error);
+      cerrar();
+      listarCliente();
+    } catch (error) {
+      console.error("Error al agregar cliente:", error);
+    }
   }
 }
+const handleFileUpload = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      const maxSize = 800; // Tamaño máximo deseado para la imagen (en píxeles)
+      let width = image.width;
+      let height = image.height;
+
+      // Redimensiona la imagen proporcionalmente si excede el tamaño máximo
+      if (width > height) {
+        if (width > maxSize) {
+          height *= maxSize / width;
+          width = maxSize;
+        }
+      } else {
+        if (height > maxSize) {
+          width *= maxSize / height;
+          height = maxSize;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(image, 0, 0, width, height);
+
+      // Convierte la imagen del canvas a base64 y asigna a foto.value
+      foto.value = canvas.toDataURL("image/jpeg", 0.7); // Calidad JPEG ajustable (0.7 es 70% de calidad)
+
+      console.log(foto.value); // Verifica en la consola que la URL de la imagen se imprime correctamente
+    };
+    image.src = reader.result;
+  };
+
+  reader.readAsDataURL(file);
+};
 
 async function agregarSeguimiento() {
   try {
@@ -285,8 +347,9 @@ const seguimiento = ref(false); // Define seguimiento como una referencia
 function mostrarSeguimiento(cliente) {
   console.log("Mostrar seguimiento para el cliente:", cliente);
   seguimientoData.value = cliente;
-  currentId.value = cliente._id; // Set the current client ID
-  seguimientoDialog.value = true; // Establece seguimientoDialog en true para abrir el diálogo
+  console.log(seguimientoData);
+  currentId.value = cliente._id;
+  seguimientoDialog.value = true; 
 }
 
 const togglePlanStatus = async (cliente) => {
@@ -324,6 +387,27 @@ async function actualizarSeguimientos() {
     listarCliente();
   } catch (error) {
     console.error("Error al actualizar seguimiento:", error);
+  }
+}
+function calcularCategoriaIMC(imc) {
+  if (imc < 18.5) {
+    return "Bajo";
+  } else if (imc >= 18.5 && imc < 24.9) {
+    return "Normal";
+  } else if (imc >= 25 && imc < 29.9) {
+    return "Sobrepeso";
+  } else {
+    return "Obesidad";
+  }
+}
+
+function formatEstatura() {
+  if (estatura.value) {
+    let value = estatura.value.replace(/,/g, "."); // Reemplazar todas las comas por puntos
+    value = value.replace(/\./g, ""); // Quitar todos los puntos de miles
+
+    let metros = parseFloat(value) / 100;
+    estatura.value = metros.toFixed(2);
   }
 }
 
@@ -386,13 +470,8 @@ onMounted(async () => {
           class="q-my-md q-mx-md"
           type="text"
         />
-        <q-input
-          outlined
-          v-model="foto"
-          label="foto"
-          class="q-my-md q-mx-md"
-          type="text"
-        />
+        <input class="input-img" type="file" ref="fileInput" @change="handleFileUpload" />
+
         <q-input
           outlined
           v-model="plan"
@@ -483,13 +562,7 @@ onMounted(async () => {
                     class="q-my-md q-mx-md"
                     type="number"
                   />
-                  <q-input
-                    outlined
-                    v-model="imc"
-                    label="IMC"
-                    class="q-my-md q-mx-md"
-                    type="number"
-                  />
+
                   <q-input
                     outlined
                     v-model="brazo"
@@ -514,10 +587,12 @@ onMounted(async () => {
                   <q-input
                     outlined
                     v-model="estatura"
-                    label="Estatura"
+                    label="Estatura (cm)"
                     class="q-my-md q-mx-md"
-                    type="number"
+                    type="text"
+                    @input="formatEstatura"
                   />
+
                   <q-card-actions align="right">
                     <q-btn
                       @click="
@@ -536,48 +611,38 @@ onMounted(async () => {
                   </q-card-actions>
                 </q-card>
               </q-dialog>
-              <q-dialog
-                v-model="seguimientoDialog"
-                class="seguimiento"
-                persistent
-              >
-                <q-card class="">
-                  <q-card-section
-                    style="background-color: #344860; margin-bottom: 20px"
-                    class="s"
-                  >
-                    <div class="text-h6 text-white">Seguimientos</div>
-                  </q-card-section>
-                  <q-card-section class="listaSeguimiento">
-                    <q-card
-                      v-for="seguimiento in seguimientoData.seguimiento"
-                      :key="seguimiento.fechaIngreso"
-                    >
-                      <q-card-section>
-                        <div>
-                          Fecha de ingreso: {{ seguimiento.fechaIngreso }}
-                        </div>
-                        <div>Peso: {{ seguimiento.peso }}</div>
-                        <div>IMC: {{ seguimiento.imc }}</div>
-                        <div>Brazo: {{ seguimiento.brazo }}</div>
-                        <div>Cintura: {{ seguimiento.cintura }}</div>
-                        <div>Pie: {{ seguimiento.pie }}</div>
-                        <div>Estatura: {{ seguimiento.estatura }}</div>
-                        <q-btn
-                          @click="mostrarSeguimientos(seguimiento, props.row)"
-                          class="editar"
-                          >Editar</q-btn
-                        >
-                      </q-card-section>
-                    </q-card>
-                  </q-card-section>
-                  <q-card-actions align="center">
-                    <q-btn color="black" outline @click="cerrarSeguimiento()"
-                      >Cerrar</q-btn
-                    >
-                  </q-card-actions>
-                </q-card>
-              </q-dialog>
+              
+              
+               <q-dialog v-model="seguimientoDialog" class="seguimiento" persistent>
+      <q-card class="">
+        <q-card-section style="background-color: #344860; margin-bottom: 20px" class="s">
+          <div class="text-h5 text-white text-center nombre">Seguimientos del Cliente:{{ seguimientoData.nombre }}</div>
+          
+          <img v-if="seguimientoData.foto" :src="seguimientoData.foto" alt="Foto de cliente"
+            style="max-width: 40%; max-height:120px; object-fit: cover; border-radius: 8px;">
+        </q-card-section>
+
+        <q-card-section class="listaSeguimiento">
+          <q-card v-for="seguimiento in seguimientoData.seguimiento" :key="seguimiento.fechaIngreso">
+            <q-card-section>
+              <div>Fecha de ingreso: {{ moment(seguimiento.fechaIngreso).format("dddd, D MMMM YYYY") }}</div>
+              <div>Peso: {{ seguimiento.peso }}</div>
+              <div>IMC: {{ seguimiento.imc }} ({{ calcularCategoriaIMC(seguimiento.imc) }})</div>
+              <div>Brazo: {{ seguimiento.brazo }}</div>
+              <div>Cintura: {{ seguimiento.cintura }}</div>
+              <div>Pie: {{ seguimiento.pie }}</div>
+              <div>Estatura: {{ seguimiento.estatura }}</div>
+              <q-btn @click="mostrarSeguimientos(seguimiento, seguimientoData)"
+                class="editar">Editar</q-btn>
+            </q-card-section>
+          </q-card>
+        </q-card-section>
+
+        <q-card-actions align="center">
+          <q-btn color="black" outline @click="cerrarSeguimiento()">Cerrar</q-btn>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
               <span role="img" aria-label="Toggle">
                 {{ props.row.estado == 1 ? "❌" : "✅" }}
@@ -596,11 +661,6 @@ onMounted(async () => {
           </q-td>
         </template>
       </q-table>
-      <q-tr>
-        <q-td colspan="4" class="text-right">
-          <div class="text-h6">Total: {{ total.cantidad }} Clientes</div>
-        </q-td>
-      </q-tr>
     </div>
   </div>
 </template>
@@ -651,17 +711,15 @@ onMounted(async () => {
   width: 180vh;
 }
 
+
+
 .listaSeguimiento {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(400px, 2, 2fr)
-  ); /* Ajusta el tamaño mínimo y máximo de las columnas */
+  grid-template-columns: repeat( 2,1fr); /* Cambiado para una tarjeta por fila */
   gap: 30px;
   padding: 20px;
   font-size: 16px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
 .listaSeguimiento q-card {
@@ -677,6 +735,15 @@ onMounted(async () => {
   justify-content: center;
   align-items: center;
   padding: 20px; /* Ajusta el espaciado interno según sea necesario */
+}
+
+/* Estilos para la imagen de la tarjeta */
+.listaSeguimiento img {
+  max-width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px; /* Ajuste para el margen inferior */
 }
 
 .search {
@@ -697,10 +764,29 @@ onMounted(async () => {
   width: 60%;
   flex-direction: column;
 }
-.s {
-  width: 100%;
+.s{
+display: flex;
+width: 100%;
+}
+.s img{
+ margin-left: 100px;
+ 
 }
 .editar {
   background: #b5bbc2;
+}
+.nombre{
+margin-top: 30px;
+width: 300px;
+}
+.input-img{
+
+ width: 100vh;
+ height: 10px;
+ padding: 20px;
+}
+.input-img input{
+
+ padding: 20px;
 }
 </style>

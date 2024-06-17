@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-md" id="register">
+  <div class="q-pa-md" id="login">
     <div class="form-container">
       <h3 class="titulo">Registrar</h3>
       <div class="form-inputs">
@@ -196,5 +196,19 @@ router.push('/');
 
 .login-link a:hover {
   text-decoration: underline;
+}
+#login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-image: url("https://www.elindependiente.com/wp-content/uploads/2023/07/en-cuanto-tiempo-se-nota-el-gimnasio-1.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+#login h3 {
+  font-size: 2.1rem;
+  font-family: "Roboto", sans-serif;
+  font-weight: 900;
 }
 </style>

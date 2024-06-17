@@ -3,22 +3,23 @@
     <h2 class="title">Lista de Ingresos</h2>
 
     <div class="q-pa-md" id="oo">
-          <div class="btn">
-
-           <q-select
-         class="select"
+      <div class="btn">
+        <q-select
+          class="select"
           v-model="selectedSedeId"
           :options="options"
           label="Seleccionar Ingreso"
         />
-         <q-btn color="green" icon="search" @click="buscarIngreso">
-        Buscar Ingreso
-      </q-btn>
-        <q-btn color="green"  @click="abrir(1)">Añadir Producto</q-btn>
+        <q-btn color="green" icon="search" @click="buscarIngreso">
+          Buscar Ingreso
+        </q-btn>
+        <q-btn color="green" @click="abrir(1)">Añadir Producto</q-btn>
       </div>
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 500px">
-          <q-card-section style="background-color: #344860; margin-bottom: 20px">
+          <q-card-section
+            style="background-color: #344860; margin-bottom: 20px"
+          >
             <div class="text-h6 text-white">
               {{ accion == 1 ? "Agregar Instructor" : "Editar Instructor" }}
             </div>
@@ -30,32 +31,31 @@
             class="q-my-md q-mx-md"
             type="number"
           />
-<q-select
-  outlined
-  v-model="idSede"
-  label="Cliente"
-  class="q-my-md q-mx-md"
-  :options="
-    sedesList.map((sedes) => ({
-      label: sedes.nombre,
-      value: sedes._id,
-    }))
-  "
-/>
+          <q-select
+            outlined
+            v-model="idSede"
+            label="Cliente"
+            class="q-my-md q-mx-md"
+            :options="
+              sedesList.map((sedes) => ({
+                label: sedes.nombre,
+                value: sedes._id,
+              }))
+            "
+          />
 
-<q-select
-  outlined
-  v-model="idCliente"
-  label="Cliente"
-  class="q-my-md q-mx-md"
-  :options="
-    clientesList.map((clientes) => ({
-      label: clientes.nombre,
-      value: clientes._id,
-    }))
-  "
-/>
-
+          <q-select
+            outlined
+            v-model="idCliente"
+            label="Cliente"
+            class="q-my-md q-mx-md"
+            :options="
+              clientesList.map((clientes) => ({
+                label: clientes.nombre,
+                value: clientes._id,
+              }))
+            "
+          />
 
           <q-card-actions align="right">
             <q-btn
@@ -90,6 +90,11 @@
             </q-th>
           </q-tr>
         </template>
+        <template v-slot:body-cell-createAt="props">
+          <q-td :props="props">
+            {{ formatDate(props.row.createAt) }}
+          </q-td>
+        </template>
         <template v-slot:body-cell-opciones="props">
           <q-td :props="props" class="q-pr-xs">
             <q-btn @click="cargarDatosIngresos(props.row)">
@@ -105,11 +110,12 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { Notify } from "quasar";
-
+import moment from "moment";
+import "moment/locale/es";
 import { useIngresoStore } from "../stores/ingreso.js";
 
 let alert = ref(false);
-let sede= ref([]);
+let sede = ref([]);
 let cliente = ref([]);
 let codigo = ref("");
 let idSede = ref("");
@@ -119,9 +125,7 @@ let currentId = ref(null);
 let sedesList = ref([]);
 let clientesList = ref([]);
 let selectedSedeId = ref(null);
-let options = ref([]); 
-
-
+let options = ref([]);
 
 function abrir(accionModal) {
   accion.value = accionModal;
@@ -143,14 +147,22 @@ let useIngreso = useIngresoStore();
 
 let rows = ref([]);
 let columns = ref([
-  { name: "codigo", label: "codigo", align: "center", field: "codigo" },
-  { name: "nombreCliente", label: "Cliente", align: "center", field: "nombreCliente" },
-  { name: "nombreSede", label: "Sede", align: "center", field: "nombreCliente" }, // Corregido el nombre del campo
+  { name: "codigo", label: "Código", align: "center", field: "codigo" },
+  {
+    name: "cliente",
+    label: "Cliente",
+    align: "center",
+    field: (row) => row.cliente.nombre,
+  },
+  {
+    name: "sede",
+    label: "Sede",
+    align: "center",
+    field: (row) => row.sede.ciudad,
+  },
   { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
-
-
 
 let listarMaquinas = async () => {
   try {
@@ -162,45 +174,53 @@ let listarMaquinas = async () => {
 
     let responseClientes = await useIngreso.getCliente();
     clientesList = responseClientes.cliente || [];
-console.log("sedesList:", sedesList);
-console.log("clientesList:", clientesList);
+    console.log("sedesList:", sedesList);
+    console.log("clientesList:", clientesList);
 
-   
-rows.value = ingresos.map((ingreso) => {
-  let sede = sedesList.find((s) => s._id === ingreso.sede);
-  let cliente = clientesList.find((c) => c._id === ingreso.cliente);
-  return {
-    ...ingreso,
-    nombreSede: sede ? sede.nombre : "N/A",
-    nombreCliente: cliente ? cliente.nombre : "N/A",
-  };
-
-});
-    options.value =response.ingresos.map((ingreso) => ({
-    label: ingreso.cliente,
-    value: ingreso._id,
-  }));
+    rows.value = ingresos.map((ingreso) => {
+      let sede = sedesList.find((s) => s._id === ingreso.sede);
+      let cliente = clientesList.find((c) => c._id === ingreso.cliente);
+      return {
+        ...ingreso,
+        nombreSede: sede ? sede.nombre : "N/A",
+        nombreCliente: cliente ? cliente.nombre : "N/A",
+      };
+    });
+    options.value = response.ingresos.map((ingreso) => ({
+      label: ingreso.cliente.nombre,
+      value: ingreso._id,
+    }));
   } catch (error) {
     console.error("Error al listar los datos:", error);
   }
 };
 
-
 const agregarIngreso = async () => {
- const idSedeValue = idSede.value; // Suponiendo que idSede.value es el objeto { label, value }
+  const idSedeValue = idSede.value;
   const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
-  const idclienteValue = idCliente.value; // Suponiendo que idSede.value es el objeto { label, value }
+  const idclienteValue = idCliente.value;
   const idclienteSeleccionada = idclienteValue ? idclienteValue.value : null;
-  try {
-    await useIngreso.postIngreso({
-      codigo: codigo.value,
-      sede: idSedeSeleccionada,
-      cliente: idclienteSeleccionada,
-    });
-    cerrar();
-    listarMaquinas();
-  } catch (error) {
-    console.error("Error al agregar ingreso:", error);
+  if (!codigo.value) {
+    Notify.create("Por favor ingrese el código");
+    return;
+  } else if (!idSede.value) {
+    Notify.create("Por favor seleccione una sede");
+    return;
+  } else if (!idCliente.value) {
+    Notify.create("Por favor seleccione un cliente");
+    return;
+  } else {
+    try {
+      await useIngreso.postIngreso({
+        codigo: codigo.value,
+        sede: idSedeSeleccionada,
+        cliente: idclienteSeleccionada,
+      });
+      cerrar();
+      listarMaquinas();
+    } catch (error) {
+      console.error("Error al agregar ingreso:", error);
+    }
   }
 };
 
@@ -226,14 +246,14 @@ const cargarDatosIngresos = (ingreso) => {
   idCliente.value = ingreso.cliente;
   abrir(2);
 };
+
 const buscarIngreso = async () => {
   try {
     if (selectedSedeId.value) {
       const res = await useIngreso.getIngresoID(selectedSedeId.value.value);
-      console.log(selectedSedeId);
       if (res && res.ingresos) {
         rows.value = [res.ingresos];
-        Notify.create("ingresos encontrada");
+        Notify.create("Ingreso encontrado");
       } else {
         Notify.create("No se encontró la sede");
       }
@@ -245,6 +265,11 @@ const buscarIngreso = async () => {
     Notify.create("Error al buscar la sede");
   }
 };
+
+const formatDate = (date) => {
+  return moment(date).format("dddd, D MMMM YYYY");
+};
+
 onMounted(() => {
   listarMaquinas();
 });
@@ -289,13 +314,12 @@ onMounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  
 }
-#oo{
-  font-family:sans-serif;
+#oo {
+  font-family: sans-serif;
   width: 90%;
 }
-.ii{
+.ii {
   top: -20px;
 }
 .btn {
@@ -306,12 +330,11 @@ onMounted(() => {
   gap: 10px !important;
   width: 100%;
   margin-top: 20px;
-  
 }
-.select{
-width: 300px;
+.select {
+  width: 300px;
 }
-.btn >*{
-   border-radius: 30px;
+.btn > * {
+  border-radius: 30px;
 }
 </style>

@@ -79,8 +79,36 @@ export const useInventarioStore = defineStore("Inventario", () => {
             throw error;
         }
     };
+    
+    let desactivarInventario = async (usuario) => {
+      try {
+          const res = await axios.put(`http://localhost:4600/api/inventario/desactivar/${usuario._id}`,"",{
+              headers: {
+                "x-token":useUsuario.token,
+              },
+            });
+          console.log("Cliente desactivado:", res.data);
+      } catch (error) {
+          console.error("Error al desactivar cliente:", error);
+          throw error;
+      }
+  };
+
+  let activarInventario = async (usuario) => {
+      try {
+          const res = await axios.put(`http://localhost:4600/api/inventario/activar/${usuario._id}`,"",{
+              headers: {
+                "x-token":useUsuario.token,
+              },
+            });
+          console.log("Cliente activado:", res.data);
+      } catch (error) {
+          console.error("Error al activar cliente:", error);
+          throw error;
+      }
+  };
     return {
-        getInventario,agregarInvntario,actualizarInvntario,EliminarInventario,getTotal
+        getInventario,agregarInvntario,actualizarInvntario,EliminarInventario,getTotal,activarInventario,desactivarInventario
     };
 });
 

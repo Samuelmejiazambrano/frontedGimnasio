@@ -31,7 +31,7 @@
       />
       <q-btn
         style="width: 80%"
-        @click="loginUser()"
+        @click="loginUser"
         color="primary"
         label="Iniciar sesión"
         dense
@@ -49,6 +49,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUsuarioStore } from "../stores/usuario.js";
+import { Notify } from "quasar";
 
 let email = ref("");
 let password = ref("");
@@ -57,18 +58,39 @@ const router = useRouter();
 const useUsuario = useUsuarioStore();
 
 const loginUser = async () => {
-  console.log(email.value, password.value);
-  try {
-    const data = await useUsuario.login(email.value, password.value);
-    if (data.token) {
-      console.log(data);
-      useUsuario.token = data.token;
-      router.push('/home');
-    } else {
-      console.error('Token no encontrado en la respuesta:', data);
+  if (email.value === "") {
+    Notify.create("Por Favor Ingrese el email correcto");
+  } else if (password.value === "") {
+    Notify.create("Por favor ingrese la contraseña correcta");
+  } else {
+    console.log(email.value, password.value);
+    try {
+      const data = await useUsuario.login(email.value, password.value);
+      if (data.token) {
+        console.log(data);
+        useUsuario.token = data.token;
+        router.push('/home');
+      } else {
+        Notify.create({
+          message: 'Token no encontrado en la respuesta.',
+          color: 'negative'
+        });
+      }
+    } catch (error) {
+      console.error('Error en la solicitud de inicio de sesión:', error);
+      // Verificar si el error contiene una respuesta con mensaje
+      if (error.response && error.response.data && error.response.data.mensaje) {
+        Notify.create({
+          message: error.response.data.mensaje,
+          color: 'negative'
+        });
+      } else {
+        Notify.create({
+          message: 'Error en la solicitud de inicio de sesión.',
+          color: 'negative'
+        });
+      }
     }
-  } catch (error) {
-    console.error('Error en la solicitud de inicio de sesión:', error);
   }
 };
 </script>

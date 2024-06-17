@@ -17,15 +17,11 @@
       <q-btn color="green" class="qqq" icon="add_location" @click="abrir(1)">
         agregar
       </q-btn>
-      <q-btn color="primary" class="sa" @click="listarIngesos()">
-        Listar Usuarios
-      </q-btn>
-      <q-btn color="primary" class="sa" @click="listarSedeActivos()">
-        Listar Sedes Activos
-      </q-btn>
-      <q-btn color="primary" class="sa" @click="listarSedeInactivo()">
-        Listar Sedes Inactivos
-      </q-btn>
+  <select class="select" v-model="selectedOption" id="selectAccion" @change="seleccionarAccion">
+            <option value="listarTodos">Listar Todos los Planes</option>
+            <option value="listarActivos">Listar Planes Activos</option>
+            <option value="listarInactivos">Listar Planes Inactivos</option>
+          </select>
     </div>
     <div style="width: 150vh">
       <q-dialog v-model="alert" persistent>
@@ -174,7 +170,16 @@ let columns = ref([
 ]);
 
 let r = null;
-
+let selectedOption = ref("listarTodos");
+const seleccionarAccion = async () => {
+  if (selectedOption.value === "listarTodos") {
+    await listarIngesos();
+  } else if (selectedOption.value === "listarActivos") {
+    await listarSedeActivos();
+  } else if (selectedOption.value === "listarInactivos") {
+    await listarSedeInactivo();
+  }
+};
 let listarIngesos = async () => {
   r = await useSede.getSede();
   rows.value = r.sedes;
@@ -416,5 +421,8 @@ width: 300px;
 }
 .btn >*{
    border-radius: 30px;
+}
+.select{
+  padding: 10px;
 }
 </style>

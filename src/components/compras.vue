@@ -3,30 +3,28 @@
     <h2 class="title">Lista de Planes</h2>
 
     <div class="q-pa-md" id="cont">
-      <div class="btn">
+     <div class="btn">
+         
         <q-select
-        class="select"
+          class="select"
           v-model="selectedClientId"
           :options="options"
           label="Seleccionar Cliente"
         />
         <q-btn color="green" class="sam" @click="buscarPlan()">Buscar Plan</q-btn>
-
         <q-btn color="green" class="sam" @click="abrir(1)">Añadir Plan</q-btn>
-        <q-btn color="primary" class="sa" @click="listarIngesos()">
-          Listar Planes
-        </q-btn>
-        <q-btn color="primary" class="sa" @click="listarPLanActivos()">
-          Listar Planes Activos
-        </q-btn>
-        <q-btn color="primary" class="sa" @click="listarPlanInactivo()">
-          Listar Planes Inactivos
-        </q-btn>
+         <select class="select-cont"  v-model="selectedOption" id="selectAccion" @change="seleccionarAccion">
+            <option value="listarTodos">Listar Todos los Planes</option>
+            <option value="listarActivos">Listar Planes Activos</option>
+            <option value="listarInactivos">Listar Planes Inactivos</option>
+          </select>
       </div>
 
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 500px">
-          <q-card-section style="background-color: #344860; margin-bottom: 20px">
+          <q-card-section
+            style="background-color: #344860; margin-bottom: 20px"
+          >
             <div class="text-h6 text-white">
               {{ accion == 1 ? "Agregar Plan" : "Editar Plan" }}
             </div>
@@ -135,6 +133,16 @@ let columns = ref([
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
 
+let selectedOption = ref("listarTodos");
+const seleccionarAccion = async () => {
+  if (selectedOption.value === "listarTodos") {
+    await listarIngesos();
+  } else if (selectedOption.value === "listarActivos") {
+    await listarPLanActivos();
+  } else if (selectedOption.value === "listarInactivos") {
+    await listarPlanInactivo();
+  }
+};
 let listarIngesos = async () => {
   let r = await usePlan.getPlan();
   rows.value = r.planes;
@@ -213,17 +221,26 @@ let currentId = ref(null);
 let selectedClientId = ref(null);
 
 async function agregarUsuario() {
-  try {
-    await usePlan.agregarPlan({
-      descripcion: descripcion.value,
-      codigo: codigo.value,
-      valor: valor.value,
-      CantDias: CantDias.value,
-    });
-    cerrar();
-    listarIngesos();
-  } catch (error) {
-    console.error("Error al agregar plan:", error);
+  const val = (/\B(?=(\d{3})+(?!\d))/g, ".");
+  if (CantDias.value == "") {
+    Notify.create("por favor ingrese la cantidad de dias ");
+  } else if (descripcion.value == "") {
+    Notify.create("por favor ingrese la descripcion");
+  } else if (codigo.value.length <= 3) {
+    Notify.create("por favor ingrese el codigo");
+ }else {
+    try {
+      await usePlan.agregarPlan({
+        descripcion: descripcion.value,
+        codigo: codigo.value,
+        valor: valor.value,
+        CantDias: CantDias.value,
+      });
+      cerrar();
+      listarIngesos();
+    } catch (error) {
+      console.error("Error al agregar plan:", error);
+    }
   }
 }
 
@@ -339,12 +356,28 @@ const buscarPlan = async () => {
 }
 
 .btn .q-btn {
-  min-width: auto;
-  padding: 10px 20px;
+  min-width: 40px;
   font-size: 14px;
   border-radius: 20px;
+  height: 50px;
+    margin-top: 10px;
+
 }
-.select{
-width: 300px;
+
+.select-cont {
+   width: 20%;
+ font-size: 20px;
+ height: 40%;
+ padding: 6px;
+ border-radius: 10px;
+  margin-top: 20px;
+
+}
+.select {
+   width: 20%;
+ font-size: 20px;
+ height: 40%;
+ padding: 6px;
+ border-radius: 20px;
 }
 </style>

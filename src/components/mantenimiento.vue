@@ -12,8 +12,7 @@
       <q-btn color="green" icon="search" @click="buscarMantenimiento">
         Buscar Ingreso
       </q-btn>
-            <q-btn color="green" @click="abrir(1)">Añadir Producto</q-btn>
-
+      <q-btn color="green" @click="abrir(1)">Añadir Producto</q-btn>
     </div>
 
     <q-dialog v-model="alert" persistent>
@@ -100,17 +99,15 @@
         class="rounded-borders"
         dense
       >
-        <template v-slot:head-top>
-          <q-tr>
-            <q-th
-              v-for="column in columns"
-              :key="column.name"
-              :props="props"
-              style="background-color: orange; color: white; font-weight: bold"
-            >
-              {{ column.label }}
-            </q-th>
-          </q-tr>
+        <template v-slot:body-cell-createAt="props">
+          <q-td :props="props">
+            {{ formatDate(props.row.createAt) }}
+          </q-td>
+        </template>
+           <template v-slot:body-cell-fecha="props">
+          <q-td :props="props">
+            {{ formatDate(props.row.fecha) }}
+          </q-td>
         </template>
         <template v-slot:body-cell-opciones="props">
           <q-td :props="props">
@@ -129,20 +126,22 @@
 import { ref, onMounted } from "vue";
 import { useMantenimientoStore } from "../stores/mantenimiento.js";
 import { Notify } from "quasar";
+import moment from "moment";
+import "moment/locale/es";
 
-let alert = ref(false);
-let maquina = ref([]);
-let accion = ref(1);
-let usuarios = ref([]);
-let codigo = ref("");
-let descripcion = ref("");
-let idMaquina = ref(null);
-let responsable = ref(null);
-let currentId = ref(null);
-let fecha = ref("");
-let precio = ref(0);
-let selectedSedeId = ref(null);
-let options = ref([]);
+const alert = ref(false);
+const maquina = ref([]);
+const accion = ref(1);
+const usuarios = ref([]);
+const codigo = ref("");
+const descripcion = ref("");
+const idMaquina = ref(null);
+const responsable = ref(null);
+const currentId = ref(null);
+const fecha = ref("");
+const precio = ref(0);
+const selectedSedeId = ref(null);
+const options = ref([]);
 
 function abrir(accionModal) {
   accion.value = accionModal;
@@ -152,66 +151,72 @@ function cerrar() {
   alert.value = false;
 }
 
-let useMantenimiento = useMantenimientoStore();
+const useMantenimiento = useMantenimientoStore();
 
-let rows = ref([]);
-let columns = ref([
-  { name: "fecha", label: "fecha", align: "center", field: "fecha" },
-  {
-    name: "descripcion",
-    label: "descripcion",
-    align: "center",
-    field: "descripcion",
-  },
-  { name: "precio", label: "precio", align: "center", field: "precio" },
+const rows = ref([]);
+const columns = ref([
+  { name: "fecha", label: "Fecha", align: "center", field: "fecha" },
   {
     name: "descripcion",
     label: "Descripción",
     align: "center",
     field: "descripcion",
   },
+  { name: "precio", label: "Precio", align: "center", field: "precio" },
   { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
 
-let listarMantenimientos = async () => {
-  let response = await useMantenimiento.getMantenimiento();
+const listarMantenimientos = async () => {
+  const response = await useMantenimiento.getMantenimiento();
   rows.value = response.mantenimientos;
-  let responseMaquina = await useMantenimiento.getMaquina();
-
+  const responseMaquina = await useMantenimiento.getMaquina();
   maquina.value = responseMaquina.maquinarias;
-
-  let responseUsuario = await useMantenimiento.getUsuario();
+  const responseUsuario = await useMantenimiento.getUsuario();
   usuarios.value = responseUsuario.usuario;
-  console.log(response);
+
   options.value = response.mantenimientos.map((mantenimiento) => ({
     label: mantenimiento.descripcion,
     value: mantenimiento._id,
   }));
 };
+
 const agregarMantenimiento = async () => {
   const idMaquinaSeleccionada = idMaquina.value ? idMaquina.value.value : null;
-  const idUsuarioSeleccionado = responsable.value
-    ? responsable.value.value
-    : null;
+  const idUsuarioSeleccionado = responsable.value ? responsable.value.value : null;
 
-  try {
-    await useMantenimiento.agregarMantenimiento({
-      descripcion: descripcion.value,
-      codigo: codigo.value,
-      idMaquina: idMaquinaSeleccionada,
-      responsable: idUsuarioSeleccionado,
-      fecha: fecha.value,
-      precio: precio.value,
-    });
+  if (descripcion.value === "") {
+    Notify.create("Por favor ingrese la descripción.");
+  } else if (codigo.value.length <= 3) {
+    Notify.create("Por favor ingrese el código.");
+  } else if (!idMaquina.value) {
+    Notify.create("Por favor seleccione la maquinaria.");
+  } else if (!responsable.value) {
+    Notify.create("Por favor seleccione el responsable.");
+  } else if (fecha.value === "") {
+    Notify.create("Por favor ingrese la fecha.");
+  } else if (precio.value <= 0) {
+    Notify.create("Por favor ingrese el precio.");
+  } else {
+    try {
+      await useMantenimiento.agregarMantenimiento({
+        descripcion: descripcion.value,
+        codigo: codigo.value,
+        idMaquina: idMaquinaSeleccionada,
+        responsable: idUsuarioSeleccionado,
+        fecha: fecha.value,
+        precio: precio.value,
+      });
 
-    cerrar(); // Cerrar el diálogo después de agregar
-    listarMantenimientos(); // Actualizar la lista de mantenimientos
-  } catch (error) {
-    console.error("Error al agregar mantenimiento:", error);
+      cerrar();
+      listarMantenimientos();
+    } catch (error) {
+      console.error("Error al agregar mantenimiento:", error);
+    }
   }
 };
-function cargarDatosMantenimiento(mantenimiento) {
+
+const cargarDatosMantenimiento = (mantenimiento) => {
   currentId.value = mantenimiento._id;
   codigo.value = mantenimiento.codigo;
   descripcion.value = mantenimiento.descripcion;
@@ -221,13 +226,11 @@ function cargarDatosMantenimiento(mantenimiento) {
   precio.value = mantenimiento.precio;
 
   abrir();
-}
+};
+
 const editarMantenimiento = async () => {
-  // Obtener el valor seleccionado de la máquina y el usuario
   const idMaquinaSeleccionada = idMaquina.value ? idMaquina.value.value : null;
-  const idUsuarioSeleccionado = responsable.value
-    ? responsable.value.value
-    : null;
+  const idUsuarioSeleccionado = responsable.value ? responsable.value.value : null;
 
   try {
     await useMantenimiento.actualizarMantenimiento({
@@ -240,32 +243,34 @@ const editarMantenimiento = async () => {
       precio: precio.value,
     });
 
-    cerrar(); // Cerrar el diálogo después de editar
-    listarMantenimientos(); // Actualizar la lista de mantenimientos
+    cerrar();
+    listarMantenimientos();
   } catch (error) {
     console.error("Error al editar mantenimiento:", error);
   }
 };
+
 const buscarMantenimiento = async () => {
   try {
     if (selectedSedeId.value) {
-      const res = await useMantenimiento.getMantenimientoID(
-        selectedSedeId.value.value
-      );
-      console.log(selectedSedeId);
+      const res = await useMantenimiento.getMantenimientoID(selectedSedeId.value);
       if (res && res.mantenimientos) {
         rows.value = [res.mantenimientos];
-        Notify.create("mantenimiento encontrada");
+        Notify.create("Mantenimiento encontrado.");
       } else {
-        Notify.create("No se encontró la mantenimiento");
+        Notify.create("No se encontró el mantenimiento.");
       }
     } else {
-      Notify.create("Por favor ingrese un ID de sede");
+      Notify.create("Por favor ingrese un ID de sede.");
     }
   } catch (error) {
-    console.error("Error al buscar la sede:", error);
-    Notify.create("Error al buscar la sede");
+    console.error("Error al buscar el mantenimiento:", error);
+    Notify.create("Error al buscar el mantenimiento.");
   }
+};
+
+const formatDate = (date) => {
+  return moment(date).format("dddd, D MMMM YYYY");
 };
 
 onMounted(() => {
@@ -331,10 +336,10 @@ onMounted(() => {
   width: 100%;
   margin-top: 20px;
 }
-.select{
- width: 300px;
+.select {
+  width: 300px;
 }
-.btn >*{
-   border-radius: 30px;
+.btn > * {
+  border-radius: 30px;
 }
 </style>

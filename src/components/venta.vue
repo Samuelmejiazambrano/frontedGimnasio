@@ -160,7 +160,7 @@ let useVenta = useVentaStore();
 let rows = ref([]);
 let inventarioOptions = ref([]);
 let columns = ref([
-  { name: "codigoProducto", label: "Código", align: "center", field: "codigo" },
+  { name: "codigoProducto", label: "Código", align: "center", field: row => row.codigoProducto.descripcion},
   { name: "cantidad", label: "Cantidad", align: "center", field: "cantidad" },
   {
     name: "valorUnitario",
@@ -194,7 +194,7 @@ let listarMaquinas = async () => {
   let response = await useVenta.getVenta();
   rows.value = response.ventas;
    options.value =response.ventas.map((venta) => ({
-    label: venta.codigoProducto,
+    label: venta.codigoProducto.descripcion,
     value: venta._id,
   }));
   
@@ -206,6 +206,19 @@ let listarInventario = async () => {
 };
 
 const agregarVentas = async () => {
+  if (codigo.value.length<=3) {
+    Notify.create("por favor ingrese el codigo ");
+  } else if (cantidad.value == "") {
+    Notify.create("por favor ingrese la cantidad");
+  } else if (valorUnitario.value == "") {
+    Notify.create("por favor ingrese el valor unitario");
+  } else if (totalVentas.value == "") {
+    Notify.create("por favor ingrese la totalidad de la venta");
+  } else if (fechaInicio.value == "") {
+    Notify.create("por favor ingrese la fecha inicial ");
+  } else if (fechaFin.value == "") {
+    Notify.create("por favor ingrese la fecha final ");
+  } else {
   try {
     await useVenta.agregarVenta({
       codigoProducto: codigo.value,
@@ -221,6 +234,7 @@ const agregarVentas = async () => {
   } catch (error) {
     console.error("Error al agregar venta:", error);
     Notify.create("Error al agregar venta");
+  }
   }
 };
 

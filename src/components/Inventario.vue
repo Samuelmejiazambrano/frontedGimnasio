@@ -101,24 +101,22 @@
         <q-btn @click="cargarDatosUsuario(props.row)">
           <span role="img" aria-label="Editar">✏️</span>
         </q-btn>
-        <q-btn
-          color="red"
-          flat
-          dense
-          round
-          icon="delete"
-          @click="eliminarInventario(props.row)"
-        />
+        <q-btn @click="togglePlanStatus(props.row)">
+            <span role="img" aria-label="Toggle">
+              {{ props.row.estado == 1 ? "❌" : "✅" }}
+            </span>
+          </q-btn>
       </div>
     </q-td>
   </template>
 </q-table>
 
-      <q-tr>
-        <q-td colspan="4" class="text-right">
-      <div class="text-h6 total">Total: {{ total.total }}</div>
-        </q-td>
-      </q-tr>
+    <q-tr>
+      <q-td colspan="4" class="text-right">
+        <div class="text-h6 total">Total: {{total.total}}</div>
+      </q-td>
+    </q-tr>
+    
     </div>
   </div>
 </template>
@@ -134,13 +132,19 @@ let useInventario = useInventarioStore();
 let rows = ref([]);
 let columns = ref([
   { name: "codigo", label: "Código", align: "center", field: "codigo" },
-  { name: "valor", label: "Valor", align: "center", field: "valor" },
+  { name: "valor", label: "Valor", align: "center", field: (row) => formatNumber(row.valor), },
   { name: "cantidad", label: "Cantidad", align: "center", field: "cantidad" },
   {
     name: "descripcion",
     label: "Descripción",
     align: "center",
     field: "descripcion",
+  },
+  {
+    name: "estado",
+    label: "estado",
+    align: "center",
+    field: "estado",
   },
   { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
@@ -154,6 +158,11 @@ let cantidad = ref("");
 let accion = ref(1);
 let currentId = ref(null);
 let total = ref(0);
+
+
+const formatNumber = (number) => {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
 
 const listarInventario = async () => {
   const response = await useInventario.getInventario();
@@ -251,6 +260,48 @@ function limpiarFormulario() {
   cantidad.value = "";
   currentId.value = null;
 }
+const desactivarInventario = async (maquinarias) => {
+  try {
+    if (maquinarias && maquinarias._id) {
+      await useInventario.desactivarInventario(maquinarias);
+      Notify.create("Inventario desactivado correctamente");
+      listarInventario(); 
+    } else {
+      Notify.create("Plan no válido");
+    }
+  } catch (error) {
+    console.error("Error al desactivar plan:", error);
+    Notify.create("Error al desactivar plan");
+  }
+};
+
+const activarInventario = async (maquinaria) => {
+  try {
+    if (maquinaria && maquinaria._id) {
+      await useInventario.activarInventario(maquinaria);
+      Notify.create("Inventario activado correctamente");
+      listarInventario();
+    } else {
+      Notify.create("Plan no válido");
+    }
+  } catch (error) {
+    console.error("Error al activar plan:", error);
+    Notify.create("Error al activar plan");
+  }
+};
+const togglePlanStatus = async (maquinarias) => {
+  console.log(maquinarias);
+  try {
+    if (maquinarias.estado === 1) {
+      await desactivarInventario(maquinarias);
+    } else {
+      await activarInventario(maquinarias);
+    }
+  } catch (error) {
+    console.error("Error al cambiar el estado del plan:", error);
+    Notify.create("Error al cambiar el estado del plan");
+  }
+};
 
 onMounted(() => {
   listarInventario();

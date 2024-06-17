@@ -1,32 +1,43 @@
 <template>
   <div id="ttt">
     <div class="q-pa-md" id="rr">
-        <h2 class="title">Lista de Maquinaria</h2>
+      <h2 class="title">Lista de Maquinaria</h2>
 
       <div class="btn">
-      
-         <q-select
-         class="select"
+        <q-select
+          class="select"
           v-model="selectedSedeId"
           :options="options"
           label="Seleccionar Cliente"
         />
-         <q-btn color="green" class="qqq" icon="search" @click="buscarMaquinaria">
-        Buscar Sede
-      </q-btn>
-        <q-btn color="primary" class="sa" @click="listarMaquinariaActivos()">
-          Listar Maquinaria Activos
+        <q-btn
+          color="green"
+          class="qqq"
+          icon="search"
+          @click="buscarMaquinaria"
+        >
+          Buscar Sede
         </q-btn>
-        <q-btn color="primary" class="sa" @click="listarMaquinariaInactivo()">
-          Listar Maquinaria Inactivos
-        </q-btn>
+
         <q-btn color="green" class="añadir-btn" @click="abrir(1)">
           Añadir Producto
         </q-btn>
+        <select
+          class="select"
+          v-model="selectedOption"
+          id="selectAccion"
+          @change="seleccionarAccion"
+        >
+          <option value="listarTodos">Listar Todos los Planes</option>
+          <option value="listarActivos">Listar Planes Activos</option>
+          <option value="listarInactivos">Listar Planes Inactivos</option>
+        </select>
       </div>
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 700px">
-          <q-card-section style="background-color: #344860; margin-bottom: 20px">
+          <q-card-section
+            style="background-color: #344860; margin-bottom: 20px"
+          >
             <div class="text-h6 text-white">
               {{ accion == 1 ? "Agregar Instructor" : "Editar Instructor" }}
             </div>
@@ -50,7 +61,9 @@
             v-model="idSede"
             label="Sede"
             class="q-my-md q-mx-md"
-            :options="sedes.map((sede) => ({ label: sede.nombre, value: sede._id }))"
+            :options="
+              sedes.map((sede) => ({ label: sede.nombre, value: sede._id }))
+            "
           />
           <q-input
             outlined
@@ -97,7 +110,9 @@
         </template>
         <template v-slot:body-cell-FechaUmantenimiento="props">
           <q-td :props="props">
-            {{ moment(props.row.FechaUmantenimiento).format("dddd, D MMMM YYYY") }}
+            {{
+              moment(props.row.FechaUmantenimiento).format("dddd, D MMMM YYYY")
+            }}
           </q-td>
         </template>
         <template v-slot:body-cell-estado="props">
@@ -172,11 +187,20 @@ const fecha = ref("");
 const FechaUmantenimiento = ref("");
 const accion = ref(1);
 const sedes = ref([]);
-let options = ref([]); 
+let options = ref([]);
 let selectedSedeId = ref(null);
 
 const currentId = ref(null);
-
+let selectedOption = ref("listarTodos");
+const seleccionarAccion = async () => {
+  if (selectedOption.value === "listarTodos") {
+    await listarMaquinas();
+  } else if (selectedOption.value === "listarActivos") {
+    await listarMaquinariaActivos();
+  } else if (selectedOption.value === "listarInactivos") {
+    await listarMaquinariaInactivo();
+  }
+};
 const abrir = (accionModal) => {
   accion.value = accionModal;
   alert.value = true;
@@ -201,9 +225,8 @@ const listarMaquinas = async () => {
       nombreSede: sede ? sede.nombre : "N/A",
     };
   });
-  
-  
-   options.value =response.maquinarias.map((maquinaria) => ({
+
+  options.value = response.maquinarias.map((maquinaria) => ({
     label: maquinaria.descripcion,
     value: maquinaria._id,
   }));
@@ -231,27 +254,39 @@ onMounted(() => {
 });
 
 const agregarMaquina = async () => {
-  try {
-    const idSedeValue = idSede.value; // Suponiendo que idSede.value es el objeto { label, value }
-    const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
+  if (descripcion.value == "") {
+    Notify.create("por favor ingrese la descripcion ");
+  } else if (codigo.value.length <= 3) {
+    Notify.create("por favor ingrese el codigo ");
+  } else if (idSede.value == "") {
+    Notify.create("por favor ingrese el id maquinaria");
+  } else if (fecha.value == "") {
+    Notify.create("por favor ingrese la fecha ");
+  } else if (FechaUmantenimiento.value == "") {
+    Notify.create("por favor ingrese el precio ");
+  } else {
+    try {
+      const idSedeValue = idSede.value; // Suponiendo que idSede.value es el objeto { label, value }
+      const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
 
-    if (!idSedeSeleccionada) {
-      console.error("Error: No se ha seleccionado una sede.");
-      return;
+      if (!idSedeSeleccionada) {
+        console.error("Error: No se ha seleccionado una sede.");
+        return;
+      }
+
+      await useMaquina.agregarMaquinaria({
+        descripcion: descripcion.value,
+        codigo: codigo.value,
+        idSede: idSedeSeleccionada,
+        fecha: fecha.value,
+        FechaUmantenimiento: FechaUmantenimiento.value,
+      });
+
+      cerrar();
+      listarMaquinas();
+    } catch (error) {
+      console.error("Error al agregar maquinaria:", error);
     }
-
-    await useMaquina.agregarMaquinaria({
-      descripcion: descripcion.value,
-      codigo: codigo.value,
-      idSede: idSedeSeleccionada,
-      fecha: fecha.value,
-      FechaUmantenimiento: FechaUmantenimiento.value,
-    });
-
-    cerrar();
-    listarMaquinas();
-  } catch (error) {
-    console.error("Error al agregar maquinaria:", error);
   }
 };
 
@@ -397,12 +432,14 @@ onMounted(() => {
   gap: 10px !important;
   width: 90%;
   margin-top: 20px;
-  
 }
-.btn >*{
-   border-radius: 30px;
+.btn > * {
+  border-radius: 30px;
 }
-.select{
-
-width: 300px;}
+.select {
+  width: 300px;
+}
+.select {
+  padding: 10px;
+}
 </style>

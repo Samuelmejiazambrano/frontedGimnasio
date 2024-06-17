@@ -29,14 +29,13 @@
   <q-btn color="green" class="bb" icon="search" @click="buscarUsuario">
     Buscar Sede
   </q-btn>
-  <q-btn color="primary" class="bb" @click="listarUsuariosActivos()">
-    Listar Usuarios Activos
-  </q-btn>
-  <q-btn color="primary" class="bb" @click="listarUsuariosInactivo()">
-    Listar Usuarios Inactivos
-  </q-btn>
-  <q-btn color="primary" class="bb" @click="listarIngesos()">Listar Usuarios</q-btn>
+
   <q-btn color="green" class="bb" @click="abrir(1)">Añadir Usuario</q-btn>
+     <select class="select" v-model="selectedOption" id="selectAccion" @change="seleccionarAccion">
+            <option value="listarTodos">Listar Todos los Planes</option>
+            <option value="listarActivos">Listar Planes Activos</option>
+            <option value="listarInactivos">Listar Planes Inactivos</option>
+          </select>
 </div>
 
 
@@ -191,7 +190,16 @@ let columns = ref([
 ]);
 
 let r = null;
-
+let selectedOption = ref("listarTodos");
+const seleccionarAccion = async () => {
+  if (selectedOption.value === "listarTodos") {
+    await listarIngesos();
+  } else if (selectedOption.value === "listarActivos") {
+    await listarUsuariosActivos();
+  } else if (selectedOption.value === "listarInactivos") {
+    await listarUsuariosInactivo();
+  }
+};
 let listarIngesos = async () => {
   r = await useUsuario.getUsuario();
 
@@ -218,15 +226,17 @@ function cerrar() {
   alert.value = false;
 }
 const agregarUsuario = async () => {
-  if (nombre.value == "") {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const namePattern = /^[A-Za-z\s]+$/;
+  if(!namePattern.test( nombre.value))  {
     Notify.create("por favor ingrese su nombre ");
   } else if (sede.value == "") {
     Notify.create("por favor ingrese la Sede");
-  } else if (email.value == "") {
+  } else if (emailPattern.test(email.value)==false) {
     Notify.create("por favor ingrese el Email");
   } else if (direccion.value == "") {
     Notify.create("por favor ingrese la direccion");
-  } else if (telefono.value == "") {
+  } else if (telefono.value.length !== 10) {
     Notify.create("por favor ingrese el telefono");
   } else if (rol.value == "") {
     Notify.create("por favor ingrese el rol ");
@@ -422,11 +432,7 @@ onMounted(() => {
   width: 100%;
 }
 /* Estilos para los botones */
-.bb {
-  margin: 5px; /* Espaciado entre los botones */
-  font-size: 16px; /* Tamaño del texto de los botones */
-  border-radius: 8px; /* Bordes redondeados para los botones */
-}
+
 
 /* Alineación vertical de los botones en su contenedor */
 
@@ -453,9 +459,9 @@ onMounted(() => {
 /* Estilos para el select */
 .select {
   min-width: 300px; /* Ajusta el ancho mínimo según tus necesidades */
-  font-size: 16px; /* Tamaño de fuente */
   border-radius: 8px; /* Bordes redondeados */
-  height: 80px;
+  padding: 10px;
+  margin-bottom: 20px;
 }
 
 /* Estilo para el icono desplegable del select */
@@ -465,4 +471,5 @@ onMounted(() => {
 .btn >*{
    border-radius: 30px;
 }
+
 </style>

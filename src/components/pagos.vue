@@ -80,15 +80,15 @@
          <q-btn color="green"  icon="search" @click="buscarPago">
         Buscar Pago
       </q-btn>
-        <q-btn color="primary" class="bb" @click="listarPagosActivos()">
-    Listar Pagos Activos
-  </q-btn>
-  <q-btn color="primary" class="bb" @click="listarPagosInactivo()">
-    Listar Pagos Inactivos
-  </q-btn>
+ 
         <q-btn color="green"  @click="abrir(1)"
           >Añadir Producto</q-btn
         >
+           <select class="select" v-model="selectedOption" id="selectAccion" @change="seleccionarAccion">
+            <option value="listarTodos">Listar Todos los Planes</option>
+            <option value="listarActivos">Listar Planes Activos</option>
+            <option value="listarInactivos">Listar Planes Inactivos</option>
+          </select>
       </div>
       <q-table
         title="Pagos"
@@ -170,6 +170,16 @@ const agregarPagos = async () => {
   const idPagosSeleccionada = idPagosValue ? idPagosValue.value : null;
   const idclienteValue = idCliente.value; // Suponiendo que idSede.value es el objeto { label, value }
   const idclienteSeleccionada = idclienteValue ? idclienteValue.value : null;
+  const val=(/\B(?=(\d{3})+(?!\d))/g, ".")
+  if (codigo.value.length<=3){
+    Notify.create("por favor ingrese la descripcion ");
+  } else if (plan.value == "") {
+    Notify.create("por favor ingrese el codigo ");
+  } else if (idCliente.value == "") {
+    Notify.create("por favor ingrese el id maquinaria");
+  } else if (!val.test(valor.value)) {
+    Notify.create("por favor ingrese el responsable");
+  } else {
   try {
     await usePago.agregarPago({
       codigo: codigo.value,
@@ -183,6 +193,7 @@ const agregarPagos = async () => {
   } catch (error) {
     console.error("Error al agregar venta:", error);
     Notify.create("Error al agregar venta");
+  }
   }
 };
 
@@ -327,6 +338,16 @@ const listarPagosInactivo = async () => {
     Notify.create("Error al obtener usuarios activos");
   }
 };
+let selectedOption = ref("listarTodos");
+const seleccionarAccion = async () => {
+  if (selectedOption.value === "listarTodos") {
+    await listarPagos();
+  } else if (selectedOption.value === "listarActivos") {
+    await listarPagosActivos();
+  } else if (selectedOption.value === "listarInactivos") {
+    await listarPagosInactivo();
+  }
+};
 onMounted(() => {
   listarPagos();
 });
@@ -414,5 +435,8 @@ width: 300px;
 }
 .btn >*{
    border-radius: 30px;
+}
+.select{
+  padding: 10px;
 }
 </style>
