@@ -9,7 +9,7 @@
           class="select"
           v-model="selectedClientId"
           :options="options"
-          label="Seleccionar Cliente"
+          label="Seleccionar Plan"
         />
         <q-btn color="green" class="sam" @click="buscarPlan()">Buscar Plan</q-btn>
         <q-btn color="green" class="sam" @click="abrir(1)">Añadir Plan</q-btn>
@@ -76,7 +76,7 @@
         class="tabla"
         :rows="rows"
         :columns="columns"
-        title="Inventario"
+        title="Planes"
         row-key="_id"
       >
         <template v-slot:body-cell-estado="props">
@@ -150,6 +150,10 @@ let listarIngesos = async () => {
     label: plan.descripcion,
     value: plan._id,
   }));
+  Notify.create({
+        message: "Listado de Planes correctamente  ",
+        color: "green",
+      });
   console.log(r);
 };
 
@@ -157,6 +161,10 @@ const listarPLanActivos = async () => {
   try {
     const res = await usePlan.getPlanActivos();
     rows.value = res.planes;
+    Notify.create({
+        message: "Listado de Planes Activos  ",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al listar planes activos:", error);
     Notify.create("Error al obtener planes activos");
@@ -167,6 +175,10 @@ const listarPlanInactivo = async () => {
   try {
     const res = await usePlan.getPlanInactivos();
     rows.value = res.planes;
+    Notify.create({
+        message: "Listado de Planes Inactivos  ",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al listar planes inactivos:", error);
     Notify.create("Error al obtener planes inactivos");
@@ -238,8 +250,16 @@ async function agregarUsuario() {
       });
       cerrar();
       listarIngesos();
+      Notify.create({
+        message: "Plan Añadido Correctamente",
+        color: "green",
+      });
     } catch (error) {
       console.error("Error al agregar plan:", error);
+      Notify.create({
+        message: "Error al añadir Plan Correctamente",
+        color: "red",
+      });
     }
   }
 }
@@ -248,7 +268,10 @@ const desactivarPlan = async (plan) => {
   try {
     if (plan && plan._id) {
       await usePlan.desactivarPlan(plan);
-      Notify.create("Plan desactivado correctamente");
+      Notify.create({
+        message: "Plan desactivado correctamente",
+        color: "green",
+      });
       listarIngesos();
     } else {
       Notify.create("Plan no válido");
@@ -263,7 +286,10 @@ const activarPlan = async (plan) => {
   try {
     if (plan && plan._id) {
       await usePlan.activarPlan(plan);
-      Notify.create("Plan activado correctamente");
+      Notify.create({
+        message: "Plan activado correctamente",
+        color: "green",
+      });
       listarIngesos();
     } else {
       Notify.create("Plan no válido");
@@ -298,6 +324,10 @@ const buscarPlan = async () => {
           rows.value = [response.planes];
         }
         console.log(response.planes);
+        Notify.create({
+        message: "Plan Encontrado Correctamente",
+        color: "green",
+      });
       } else {
         Notify.create("No se encontraron planes");
       }

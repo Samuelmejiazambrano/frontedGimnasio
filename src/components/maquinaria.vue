@@ -8,7 +8,7 @@
           class="select"
           v-model="selectedSedeId"
           :options="options"
-          label="Seleccionar Cliente"
+          label="Seleccionar Maquinaria"
         />
         <q-btn
           color="green"
@@ -16,11 +16,11 @@
           icon="search"
           @click="buscarMaquinaria"
         >
-          Buscar Sede
+          Buscar Maquinaria
         </q-btn>
 
         <q-btn color="green" class="añadir-btn" @click="abrir(1)">
-          Añadir Producto
+          Añadir Maquinaria
         </q-btn>
         <select
           class="select"
@@ -28,9 +28,9 @@
           id="selectAccion"
           @change="seleccionarAccion"
         >
-          <option value="listarTodos">Listar Todos los Planes</option>
-          <option value="listarActivos">Listar Planes Activos</option>
-          <option value="listarInactivos">Listar Planes Inactivos</option>
+          <option value="listarTodos">Listar Todas las Maquinas</option>
+          <option value="listarActivos">Listar  Maquinas Activos</option>
+          <option value="listarInactivos">Listar Maquinas Inactivos</option>
         </select>
       </div>
       <q-dialog v-model="alert" persistent>
@@ -84,6 +84,7 @@
               @click="accion === 1 ? agregarMaquina() : editarMaquina()"
               color="red"
               class="text-white"
+               :loading="loading"
             >
               {{ accion === 1 ? "Agregar" : "Editar" }}
               <template v-slot:loading>
@@ -140,10 +141,16 @@
           <q-btn @click="cargarDatosUsuario(props.row)">
             <span role="img" aria-label="Editar">✏️</span>
           </q-btn>
-          <q-btn @click="togglePlanStatus(props.row)">
+          <q-btn
+            @click="togglePlanStatus(props.row)"
+            :loading="loading"
+          >
             <span role="img" aria-label="Toggle">
               {{ props.row.estado == 1 ? "❌" : "✅" }}
             </span>
+            <template v-slot:loading>
+            <q-spinner color="primary" size="1em" />
+          </template>
           </q-btn>
           <q-td :props="props" class="q-pr-xs"></q-td>
         </template>
@@ -157,6 +164,7 @@ import { Notify } from "quasar";
 import moment from "moment";
 import "moment/locale/es";
 import { useMaquinaStore } from "../stores/maquinaria.js";
+let loading=ref(false)
 
 const useMaquina = useMaquinaStore();
 const alert = ref(false);
@@ -232,12 +240,16 @@ const listarMaquinas = async () => {
   }));
 };
 const buscarMaquinaria = async () => {
+  loading.value=true
   try {
     if (selectedSedeId.value) {
       const res = await useMaquina.getMaquinariaID(selectedSedeId.value.value);
       if (res && res.maquinarias) {
         rows.value = [res.maquinarias];
         Notify.create("Sede encontrada");
+   
+      
+
       } else {
         Notify.create("No se encontró la sede");
       }
@@ -248,6 +260,9 @@ const buscarMaquinaria = async () => {
     console.error("Error al buscar la sede:", error);
     Notify.create("Error al buscar la sede");
   }
+  setTimeout(() => {
+          loading.value=false
+}, "2000");
 };
 onMounted(() => {
   listarMaquinas();
@@ -266,7 +281,7 @@ const agregarMaquina = async () => {
     Notify.create("por favor ingrese el precio ");
   } else {
     try {
-      const idSedeValue = idSede.value; // Suponiendo que idSede.value es el objeto { label, value }
+      const idSedeValue = idSede.value;
       const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
 
       if (!idSedeSeleccionada) {
@@ -327,11 +342,16 @@ const editarMaquina = async (row) => {
 };
 
 const desactivarMaquina = async (maquinarias) => {
+  loading.value=true
+
   try {
     if (maquinarias && maquinarias._id) {
       await useMaquina.desactivarMaquina(maquinarias);
-      Notify.create("Plan desactivado correctamente");
-      listarMaquinas(); // Actualizar la lista de planes después de desactivar uno
+      Notify.create({
+        message: "Maquinas desactivadas correctamente",
+        color: "green",
+      });
+      listarMaquinas();
     } else {
       Notify.create("Plan no válido");
     }
@@ -339,16 +359,22 @@ const desactivarMaquina = async (maquinarias) => {
     console.error("Error al desactivar plan:", error);
     Notify.create("Error al desactivar plan");
   }
+  setTimeout(() => {
+          loading.value=false
+}, "2000");
 };
 
 const activarMaquina = async (maquinaria) => {
   try {
     if (maquinaria && maquinaria._id) {
       await useMaquina.activarMaquina(maquinaria);
-      Notify.create("Plan activado correctamente");
+      Notify.create({
+        message: "Maquinas activado correctamente",
+        color: "green",
+      });
       listarMaquinas();
     } else {
-      Notify.create("Plan no válido");
+      Notify.create("Maquinas no válido");
     }
   } catch (error) {
     console.error("Error al activar plan:", error);
@@ -357,21 +383,32 @@ const activarMaquina = async (maquinaria) => {
 };
 
 const listarMaquinariaActivos = async () => {
+  loading.value=true
+
   try {
     const res = await useMaquina.getmaquinasInactivos();
     rows.value = res.planes;
-    Notify.create("Error al obtener usuarios activos");
+    Notify.create({
+        message: "Maquinas activos",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al listar usuarios activos:", error);
     Notify.create("Error al obtener usuarios activos");
   }
+  setTimeout(() => {
+          loading.value=false
+}, "2000");
 };
 
 const listarMaquinariaInactivo = async () => {
   try {
     const res = await useMaquina.getmaquinasActivos();
     rows.value = res.planes;
-    Notify.create("Error al obtener usuarios activos");
+    Notify.create({
+        message: "maquinas inactivos",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al listar usuarios activos:", error);
     Notify.create("Error al obtener usuarios activos");

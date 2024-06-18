@@ -9,7 +9,7 @@ export const useMaquinaStore = defineStore("Maquinaria", () => {
 
     let getMaquina = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/maquinas",{
+            let res = await axios.get("/maquinas",{
               headers: {
                 "x-token":useUsuario.token
               },
@@ -26,7 +26,7 @@ export const useMaquinaStore = defineStore("Maquinaria", () => {
     };
     let agregarMaquinaria = async (usuario) => {
         try {
-            const res = await axios.post("http://localhost:4600/api/maquinas",usuario,{
+            const res = await axios.post("/maquinas",usuario,{
               headers: {
                 "x-token":useUsuario.token,
               },
@@ -40,7 +40,7 @@ export const useMaquinaStore = defineStore("Maquinaria", () => {
     };
     let getSede = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/sede",{
+            let res = await axios.get("/sede",{
               headers: {
                 "x-token":useUsuario.token,
               },
@@ -54,7 +54,7 @@ export const useMaquinaStore = defineStore("Maquinaria", () => {
     };
     let actualizarMaquina = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/maquinas/actualizar/${usuario._id}`,usuario,{
+            const res = await axios.put(`/maquinas/actualizar/${usuario._id}`,usuario,{
               headers: {
                 "x-token":useUsuario.token,
               },
@@ -68,7 +68,7 @@ export const useMaquinaStore = defineStore("Maquinaria", () => {
     };
     let desactivarMaquina= async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/maquinas/desactivar/${usuario._id}`,"",{
+            const res = await axios.put(`/maquinas/desactivar/${usuario._id}`,"",{
               headers: {
                 "x-token":useUsuario.token,
               },
@@ -81,7 +81,7 @@ export const useMaquinaStore = defineStore("Maquinaria", () => {
     };
     let activarMaquina = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/maquinas/activar/${usuario._id}`,"",{
+            const res = await axios.put(`/maquinas/activar/${usuario._id}`,"",{
               headers: {
                 "x-token":useUsuario.token,
               },
@@ -94,7 +94,7 @@ export const useMaquinaStore = defineStore("Maquinaria", () => {
     };
     let getmaquinasActivos = async () => {
         try {
-          let res = await axios.get("http://localhost:4600/api/maquinas/activos",{
+          let res = await axios.get("/maquinas/activos",{
             headers: {
               "x-token":useUsuario.token,
             },
@@ -108,7 +108,7 @@ export const useMaquinaStore = defineStore("Maquinaria", () => {
       };
       let getmaquinasInactivos = async () => {
         try {
-          let res = await axios.get("http://localhost:4600/api/maquinas/inactivos",{
+          let res = await axios.get("/maquinas/inactivos",{
             headers: {
               "x-token":useUsuario.token,
             },
@@ -122,7 +122,7 @@ export const useMaquinaStore = defineStore("Maquinaria", () => {
       };
       const getMaquinariaID = async (sedeId) => {
         try {
-            let res = await axios.get(`http://localhost:4600/api/maquinas/${sedeId}`,{
+            let res = await axios.get(`/maquinas/${sedeId}`,{
               headers: {
                 "x-token":useUsuario.token,
               },

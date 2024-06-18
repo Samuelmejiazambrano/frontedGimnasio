@@ -9,7 +9,7 @@
          class="select"
           v-model="selectedSedeId"
           :options="options"
-          label="Seleccionar Cliente"
+          label="Seleccionar Sede"
         />
       <q-btn color="green" class="qqq" icon="search" @click="buscarSede">
         Buscar Sede
@@ -18,9 +18,9 @@
         agregar
       </q-btn>
   <select class="select" v-model="selectedOption" id="selectAccion" @change="seleccionarAccion">
-            <option value="listarTodos">Listar Todos los Planes</option>
-            <option value="listarActivos">Listar Planes Activos</option>
-            <option value="listarInactivos">Listar Planes Inactivos</option>
+            <option value="listarTodos">Listar Todas las Sedes</option>
+            <option value="listarActivos">Listar Sedes Activos</option>
+            <option value="listarInactivos">Listar Sedes Inactivos</option>
           </select>
     </div>
     <div style="width: 150vh">
@@ -194,6 +194,10 @@ const listarSedeActivos = async () => {
   try {
     const res = await useSede.getSedeActivos();
     rows.value = res.sedes;
+    Notify.create({
+        message: "Sedes Activos",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al listar sedes activas:", error);
     Notify.create("Error al obtener sedes activas");
@@ -204,6 +208,10 @@ const listarSedeInactivo = async () => {
   try {
     const res = await useSede.getSedeInactivos();
     rows.value = res.sedes;
+    Notify.create({
+        message: "Sedes Inactivas",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al listar sedes inactivas:", error);
     Notify.create("Error al obtener sedes inactivas");
@@ -216,7 +224,10 @@ const buscarSede = async () => {
       const res = await useSede.getSedeID(selectedSedeId.value.value);
       if (res && res.sedes) {
         rows.value = [res.sedes];
-        Notify.create("Sede encontrada");
+        Notify.create({
+        message: "Sede encontrada",
+        color: "green",
+      });
       } else {
         Notify.create("No se encontró la sede");
       }
@@ -263,6 +274,10 @@ const agregarSede = async () => {
         horario: hora.value,
         ciudad: ciudad.value,
         telefono: telefono.value,
+      });
+      Notify.create({
+        message: "Sede agregada correctamente",
+        color: "green",
       });
       cerrar();
       listarIngesos();
@@ -321,7 +336,10 @@ const desactivarSede = async (plan) => {
   try {
     if (plan && plan._id) {
       await useSede.desactivarSede(plan);
-      Notify.create("Sede desactivada correctamente");
+      Notify.create({
+        message: "Sede desactivada correctamente",
+        color: "green",
+      });
       listarIngesos();
     } else {
       Notify.create("Sede no válida");
@@ -336,7 +354,10 @@ const activarSede = async (plan) => {
   try {
     if (plan && plan._id) {
       await useSede.activarSede(plan);
-      Notify.create("Sede activada correctamente");
+      Notify.create({
+        message: "Sede activada correctamente",
+        color: "green",
+      });
       listarIngesos();
     } else {
       Notify.create("Sede no válida");

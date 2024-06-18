@@ -4,7 +4,7 @@ import axios from "axios";
 export const useLoginStore = defineStore("login", () => {
     const login = async ({ nombre, password }) => {
         try {
-            const response = await axios.post("http://localhost:4600/api/usuario/login", {
+            const response = await axios.post("/usuario/login", {
                 nombre: nombre,
                 password: password
             });

@@ -9,7 +9,7 @@ export const useVentaStore = defineStore("Venta", () => {
 
     let getVenta = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/venta",{
+            let res = await axios.get("/venta",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -23,7 +23,7 @@ export const useVentaStore = defineStore("Venta", () => {
     };
     let getInventario = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/inventario",{
+            let res = await axios.get("/inventario",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -37,7 +37,7 @@ export const useVentaStore = defineStore("Venta", () => {
     };
     let agregarVenta = async (venta) => {
         try {
-            const res = await axios.post("http://localhost:4600/api/venta",venta,{
+            const res = await axios.post("/venta",venta,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -53,7 +53,7 @@ export const useVentaStore = defineStore("Venta", () => {
     };
     let actualizarVenta= async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/venta/actualizar/${usuario._id}`,usuario,{
+            const res = await axios.put(`/venta/actualizar/${usuario._id}`,usuario,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -67,7 +67,7 @@ export const useVentaStore = defineStore("Venta", () => {
     };
     const getVentaID = async (sedeId) => {
       try {
-          let res = await axios.get(`http://localhost:4600/api/venta/${sedeId}`,{
+          let res = await axios.get(`/venta/${sedeId}`,{
             headers: {
               "x-token":useUsuario.token,
             },

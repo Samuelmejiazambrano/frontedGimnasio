@@ -7,7 +7,7 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let getCliente = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/clientes",{
+            let res = await axios.get("/clientes",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -21,7 +21,7 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let getCumpleanos = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/clientes/listar/cumpleanos",{
+            let res = await axios.get("/clientes/listar/cumpleanos",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -35,7 +35,7 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let totalCliente = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/clientes/total/clientes",{
+            let res = await axios.get("/clientes/total/clientes",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -49,7 +49,7 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     const getClientesPorPlan = async (planId) => {
         try {
-            let res = await axios.get(`http://localhost:4600/api/clientes/clientes/plan/${planId}`,{
+            let res = await axios.get(`/clientes/clientes/plan/${planId}`,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -63,7 +63,7 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let getPlan = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/plan",{
+            let res = await axios.get("/plan",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -77,7 +77,7 @@ export const useClienteStore = defineStore("Cliente", () => {
 
     let postCliente = async (ingreso) => {
         try {
-            let res = await axios.post("http://localhost:4600/api/clientes", ingreso,{
+            let res = await axios.post("/clientes", ingreso,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -93,7 +93,7 @@ export const useClienteStore = defineStore("Cliente", () => {
 let postSeguimiento = async (usuarioId, seguimientoData) => {
   try {
   console.log(usuarioId);
-    let res = await axios.post(`http://localhost:4600/api/clientes/seguimiento/${usuarioId}`, seguimientoData, {
+    let res = await axios.post(`/clientes/seguimiento/${usuarioId}`, seguimientoData, {
       headers: {
         "x-token": useUsuario.token,
       },
@@ -111,7 +111,7 @@ let postSeguimiento = async (usuarioId, seguimientoData) => {
 
     let desactivarCliente = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/clientes/desactivar/${usuario._id}`,{
+            const res = await axios.put(`/clientes/desactivar/${usuario._id}`,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -125,7 +125,7 @@ let postSeguimiento = async (usuarioId, seguimientoData) => {
 
     let activarCliente = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/clientes/activar/${usuario._id}`,{
+            const res = await axios.put(`/clientes/activar/${usuario._id}`,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -139,7 +139,7 @@ let postSeguimiento = async (usuarioId, seguimientoData) => {
 
     let actualizarCliente = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/clientes/${usuario._id}`, usuario,{
+            const res = await axios.put(`/clientes/${usuario._id}`, usuario,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -153,7 +153,7 @@ let postSeguimiento = async (usuarioId, seguimientoData) => {
 
     let actualizarSeguimiento = async (clienteId, seguimientoId, datosSeguimiento) => {
       try {
-        const res = await axios.put(`http://localhost:4600/api/clientes/${clienteId}/seguimiento/${seguimientoId}`, datosSeguimiento, {
+        const res = await axios.put(`/clientes/${clienteId}/seguimiento/${seguimientoId}`, datosSeguimiento, {
           headers: {
             "x-token": useUsuario.token,
           },
@@ -169,7 +169,7 @@ let postSeguimiento = async (usuarioId, seguimientoData) => {
     
     const getClienteID = async (planId) => {
         try {
-            let res = await axios.get(`http://localhost:4600/api/clientes/${planId}`,{
+            let res = await axios.get(`/clientes/${planId}`,{
                 headers: {
                   "x-token":useUsuario.token,
                 },

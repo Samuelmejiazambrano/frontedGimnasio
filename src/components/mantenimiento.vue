@@ -7,12 +7,12 @@
         class="select"
         v-model="selectedSedeId"
         :options="options"
-        label="Seleccionar Ingreso"
+        label="Seleccionar Mantenimiento"
       />
       <q-btn color="green" icon="search" @click="buscarMantenimiento">
-        Buscar Ingreso
+        Buscar Mantenimiento
       </q-btn>
-      <q-btn color="green" @click="abrir(1)">Añadir Producto</q-btn>
+      <q-btn color="green" @click="abrir(1)">Añadir Mantenimiento</q-btn>
     </div>
 
     <q-dialog v-model="alert" persistent>
@@ -207,7 +207,10 @@ const agregarMantenimiento = async () => {
         fecha: fecha.value,
         precio: precio.value,
       });
-
+  Notify.create({
+        message: "Mantenimientos inactivos",
+        color: "green",
+      });
       cerrar();
       listarMantenimientos();
     } catch (error) {
@@ -256,7 +259,10 @@ const buscarMantenimiento = async () => {
       const res = await useMantenimiento.getMantenimientoID(selectedSedeId.value);
       if (res && res.mantenimientos) {
         rows.value = [res.mantenimientos];
-        Notify.create("Mantenimiento encontrado.");
+          Notify.create({
+        message: "Mantenimiento encontrado.",
+        color: "green",
+      });
       } else {
         Notify.create("No se encontró el mantenimiento.");
       }

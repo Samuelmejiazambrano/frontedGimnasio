@@ -9,7 +9,7 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
 
     let getMantenimiento = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/mantenimiento",{
+            let res = await axios.get("/mantenimiento",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -23,7 +23,7 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
     };
     let getMaquina = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/maquinas",{
+            let res = await axios.get("/maquinas",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -37,7 +37,7 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
     };
     let agregarMantenimiento = async (inventario) => {
         try {
-            const res = await axios.post("http://localhost:4600/api/mantenimiento",inventario,{
+            const res = await axios.post("/mantenimiento",inventario,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -51,7 +51,7 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
     };
     let getUsuario = async () => {
         try {
-          let res = await axios.get("http://localhost:4600/api/usuario",{
+          let res = await axios.get("/usuario",{
             headers: {
               "x-token":useUsuario.token,
             },
@@ -65,7 +65,7 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
       };
       let actualizarMantenimiento= async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/mantenimiento/actualizar/${usuario._id}`,usuario,{
+            const res = await axios.put(`/mantenimiento/actualizar/${usuario._id}`,usuario,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -80,7 +80,7 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
       
     let desactivarMantenimiento = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/mantenimiento/desactivar/${usuario._id}`,{
+            const res = await axios.put(`/mantenimiento/desactivar/${usuario._id}`,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -93,7 +93,7 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
     };
     let activarMantenimiento= async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/mantenimiento/activar/${usuario._id}`,{
+            const res = await axios.put(`/mantenimiento/activar/${usuario._id}`,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -106,7 +106,7 @@ export const useMantenimientoStore = defineStore("Mantenimiento", () => {
     };
     const getMantenimientoID = async (sedeId) => {
         try {
-            let res = await axios.get(`http://localhost:4600/api/mantenimiento/${sedeId}`,{
+            let res = await axios.get(`/mantenimiento/${sedeId}`,{
               headers: {
                 "x-token":useUsuario.token,
               },

@@ -7,7 +7,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
   let usuario =ref({})
   let getUsuario = async () => {
     try {
-      let res = await axios.get("http://localhost:4600/api/usuario",{
+      let res = await axios.get("/usuario",{
         headers: {
           "x-token": token.value,
         },
@@ -21,7 +21,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
   };
   let getUsuarioActivos = async () => {
     try {
-      let res = await axios.get("http://localhost:4600/api/usuario/activos", {
+      let res = await axios.get("/usuario/activos", {
         headers: {
           "x-token": token.value,
         },
@@ -35,7 +35,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
   };
   let getUsuarioInactivos = async () => {
     try {
-      let res = await axios.get("http://localhost:4600/api/usuario/inactivos", {
+      let res = await axios.get("/usuario/inactivos", {
         headers: {
           "x-token": token.value,
         },
@@ -51,7 +51,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
   let agregarUsuarios = async (usuario) => {
     try {
       console.log(token.value);
-      const res = await axios.post("http://localhost:4600/api/usuario", usuario);
+      const res = await axios.post("/usuario", usuario);
       console.log("Usuario agregado:", res.data);
       console.log("hola"+token.value);
     } catch (error) {
@@ -62,7 +62,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
 
   let UpdateUsuarios = async (usuario) => {
     try {
-      const res = await axios.put(`http://localhost:4600/api/usuario/update/${usuario._id}`, usuario,{
+      const res = await axios.put(`/usuario/update/${usuario._id}`, usuario,{
         headers: {
           "x-token": token.value,
         },
@@ -76,7 +76,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
 
   let desactivarUsuarios = async (usuario) => {
     try {
-      const res = await axios.put(`http://localhost:4600/api/usuario/desactivar/${usuario._id}`, {
+      const res = await axios.put(`/usuario/desactivar/${usuario._id}`, {
         headers: {
           "x-token": token.value,
         },
@@ -90,7 +90,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
 
   let activarUsuarios = async (usuario) => {
     try {
-      const res = await axios.put(`http://localhost:4600/api/usuario/activar/${usuario._id}`,"", {
+      const res = await axios.put(`/usuario/activar/${usuario._id}`,"", {
         headers: {
           "x-token": token.value,
         },
@@ -105,7 +105,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
   let login = async (email, password) => {
     console.log(email, password);
     try {
-      let res = await axios.post("http://localhost:4600/api/usuario/login", {
+      let res = await axios.post("/usuario/login", {
         email: email,
         password: password,
       });
@@ -125,7 +125,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
   };
   const getusuarioID = async (sedeId) => {
     try {
-        let res = await axios.get(`http://localhost:4600/api/usuario/${sedeId}`, {
+        let res = await axios.get(`/usuario/${sedeId}`, {
           headers: {
             "x-token": token.value,
           },

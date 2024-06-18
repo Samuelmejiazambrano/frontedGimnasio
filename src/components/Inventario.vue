@@ -170,6 +170,10 @@ const listarInventario = async () => {
   console.log(total.value);
   
   rows.value = response.inventarios;
+  Notify.create({
+        message: "Listado del Inventario   ",
+        color: "green",
+      });
 };
 const formattedDate = moment().format("dddd, D MMMM YYYY");
 
@@ -189,6 +193,10 @@ const agregarInventario = async () => {
         codigo: codigo.value,
         valor: valor.value,
         cantidad: cantidad.value,
+      });
+      Notify.create({
+        message: "Inventario Agregado Exitosamente ",
+        color: "green",
       });
       cerrarAgregarModal();
       listarInventario();
@@ -264,7 +272,10 @@ const desactivarInventario = async (maquinarias) => {
   try {
     if (maquinarias && maquinarias._id) {
       await useInventario.desactivarInventario(maquinarias);
-      Notify.create("Inventario desactivado correctamente");
+      Notify.create({
+        message: "Inventario desactivado correctamente ",
+        color: "green",
+      });
       listarInventario(); 
     } else {
       Notify.create("Plan no válido");
@@ -279,7 +290,10 @@ const activarInventario = async (maquinaria) => {
   try {
     if (maquinaria && maquinaria._id) {
       await useInventario.activarInventario(maquinaria);
-      Notify.create("Inventario activado correctamente");
+      Notify.create({
+        message: "Inventario activado correctamente ",
+        color: "green",
+      });
       listarInventario();
     } else {
       Notify.create("Plan no válido");

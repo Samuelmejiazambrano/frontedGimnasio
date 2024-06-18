@@ -3,7 +3,9 @@ import { router } from "./routes/routes.js";
 import { createPinia } from "pinia";
 import { Quasar, Notify } from "quasar";
 import piniaPluginPersistedstate from'pinia-plugin-persistedstate';
-
+import axios from "axios"
+// axios.defaults.baseURL="http://localhost:4600/api"
+axios.defaults.baseURL="https://backendgimnasio.onrender.com/api"
 
 // Import icon libraries
 import "@quasar/extras/material-icons/material-icons.css";

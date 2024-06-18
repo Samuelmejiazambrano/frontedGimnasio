@@ -9,7 +9,7 @@ export const useInventarioStore = defineStore("Inventario", () => {
 
     let getInventario = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/inventario",{
+            let res = await axios.get("/inventario",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -23,7 +23,7 @@ export const useInventarioStore = defineStore("Inventario", () => {
     };
     let getTotal = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/inventario/total",{
+            let res = await axios.get("/inventario/total",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -37,7 +37,7 @@ export const useInventarioStore = defineStore("Inventario", () => {
     };
     let agregarInvntario = async (inventario) => {
         try {
-            const res = await axios.post("http://localhost:4600/api/inventario",inventario,{
+            const res = await axios.post("/inventario",inventario,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -51,7 +51,7 @@ export const useInventarioStore = defineStore("Inventario", () => {
     };
     let actualizarInvntario = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/inventario/actualizar/${usuario._id}`,usuario,{
+            const res = await axios.put(`/inventario/actualizar/${usuario._id}`,usuario,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -67,7 +67,7 @@ export const useInventarioStore = defineStore("Inventario", () => {
     
     let EliminarInventario = async (id) => { 
         try {
-            const res = await axios.delete(`http://localhost:4600/api/inventario/${id}`,"",{
+            const res = await axios.delete(`/inventario/${id}`,"",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -82,7 +82,7 @@ export const useInventarioStore = defineStore("Inventario", () => {
     
     let desactivarInventario = async (usuario) => {
       try {
-          const res = await axios.put(`http://localhost:4600/api/inventario/desactivar/${usuario._id}`,"",{
+          const res = await axios.put(`/inventario/desactivar/${usuario._id}`,"",{
               headers: {
                 "x-token":useUsuario.token,
               },
@@ -96,7 +96,7 @@ export const useInventarioStore = defineStore("Inventario", () => {
 
   let activarInventario = async (usuario) => {
       try {
-          const res = await axios.put(`http://localhost:4600/api/inventario/activar/${usuario._id}`,"",{
+          const res = await axios.put(`/inventario/activar/${usuario._id}`,"",{
               headers: {
                 "x-token":useUsuario.token,
               },

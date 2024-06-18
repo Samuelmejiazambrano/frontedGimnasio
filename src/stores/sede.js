@@ -9,7 +9,7 @@ export const useSedeStore = defineStore("sede", () => {
 
     let getSede = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/sede",{
+            let res = await axios.get("/sede",{
               headers: {
                 "x-token":useUsuario.token,
               },
@@ -23,7 +23,7 @@ export const useSedeStore = defineStore("sede", () => {
     };
     let getSedeActivos = async () => {
         try {
-          let res = await axios.get("http://localhost:4600/api/sede/activos",{
+          let res = await axios.get("/sede/activos",{
             headers: {
               "x-token":useUsuario.token,
             },
@@ -37,7 +37,7 @@ export const useSedeStore = defineStore("sede", () => {
       };
       let getSedeInactivos = async () => {
         try {
-          let res = await axios.get("http://localhost:4600/api/sede/inactivos",{
+          let res = await axios.get("/sede/inactivos",{
             headers: {
               "x-token":useUsuario.token,
             },
@@ -51,7 +51,7 @@ export const useSedeStore = defineStore("sede", () => {
       };
     let agregarSede = async (sede) => {
         try {
-            const res = await axios.post("http://localhost:4600/api/sede",sede,{
+            const res = await axios.post("/sede",sede,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -67,7 +67,7 @@ export const useSedeStore = defineStore("sede", () => {
     
     let actualizarSede= async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/sede/actualizar/${usuario._id}`,usuario,{
+            const res = await axios.put(`/sede/actualizar/${usuario._id}`,usuario,{
               headers: {
                 "x-token":useUsuario.token,
               },
@@ -81,7 +81,7 @@ export const useSedeStore = defineStore("sede", () => {
     };
     let desactivarSede = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/sede/desactivar/${usuario._id}`,"",{
+            const res = await axios.put(`/sede/desactivar/${usuario._id}`,"",{
               headers: {
                 "x-token":useUsuario.token,
               },
@@ -94,7 +94,7 @@ export const useSedeStore = defineStore("sede", () => {
     };
     let activarSede = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/sede/activar/${usuario._id}`,"",{
+            const res = await axios.put(`/sede/activar/${usuario._id}`,"",{
               headers: {
                 "x-token":useUsuario.token,
               },
@@ -107,7 +107,7 @@ export const useSedeStore = defineStore("sede", () => {
     };
     const getSedeID = async (sedeId) => {
       try {
-          let res = await axios.get(`http://localhost:4600/api/sede/${sedeId}`,{
+          let res = await axios.get(`/sede/${sedeId}`,{
             headers: {
               "x-token":useUsuario.token,
             },

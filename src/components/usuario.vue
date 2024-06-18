@@ -23,18 +23,18 @@
    <q-select
     v-model="selectedSedeId"
     :options="options"
-    label="Seleccionar Cliente"
+    label="Seleccionar Usuario"
     class="select"
   />
   <q-btn color="green" class="bb" icon="search" @click="buscarUsuario">
-    Buscar Sede
+    Buscar Usuario
   </q-btn>
 
   <q-btn color="green" class="bb" @click="abrir(1)">Añadir Usuario</q-btn>
      <select class="select" v-model="selectedOption" id="selectAccion" @change="seleccionarAccion">
-            <option value="listarTodos">Listar Todos los Planes</option>
-            <option value="listarActivos">Listar Planes Activos</option>
-            <option value="listarInactivos">Listar Planes Inactivos</option>
+            <option value="listarTodos">Listar Todos los Usuarios</option>
+            <option value="listarActivos">Listar Usuarios Activos</option>
+            <option value="listarInactivos">Listar Usuarios Inactivos</option>
           </select>
 </div>
 
@@ -253,7 +253,10 @@ const agregarUsuario = async () => {
         rol: rol.value.value,
         password: password.value,
       });
-
+   Notify.create({
+        message: "Usuario agregado correctamente",
+        color: "green",
+      });
       cerrar();
       listarIngesos();
     } catch (error) {
@@ -265,7 +268,10 @@ const listarUsuariosActivos = async () => {
   try {
     const res = await useUsuario.getUsuarioActivos();
     rows.value = res.usuarios;
-    Notify.create("Error al obtener usuarios activos");
+     Notify.create({
+        message: "usuarios activos",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al listar usuarios activos:", error);
     Notify.create("Error al obtener usuarios activos");
@@ -275,7 +281,10 @@ const listarUsuariosInactivo = async () => {
   try {
     const res = await useUsuario.getUsuarioInactivos();
     rows.value = res.usuarios;
-    Notify.create("Error al obtener usuarios activos");
+      Notify.create({
+        message: "usuarios inactivos",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al listar usuarios activos:", error);
     Notify.create("Error al obtener usuarios activos");
@@ -285,7 +294,10 @@ const desactivarUsuario = async (usuario) => {
   try {
     if (usuario && usuario._id) {
       await useUsuario.desactivarUsuarios(usuario);
-      Notify.create("Usuario desactivado correctamente");
+        Notify.create({
+        message: "Usuario desactivado correctamente",
+        color: "green",
+      });
       listarIngesos();
     } else {
       Notify.create("Usuario no válido");
@@ -299,7 +311,10 @@ const activarUsuario = async (usuario) => {
   try {
     if (usuario && usuario._id) {
       await useUsuario.activarUsuarios(usuario);
-      Notify.create("Usuario desactivado correctamente");
+         Notify.create({
+        message: "Usuario activado correctamente",
+        color: "green",
+      });
       listarIngesos(); // Actualizar la lista de usuarios después de desactivar uno
     } else {
       Notify.create("Usuario no válido");
@@ -371,7 +386,11 @@ const buscarUsuario = async () => {
       const res = await useUsuario.getusuarioID(selectedSedeId.value.value);
       if (res && res.usuario) {
         rows.value = [res.usuario];
-        Notify.create("Sede encontrada");
+           Notify.create({
+        message: "Usuario encontrado correctamente",
+        color: "green",
+      });
+        
       } else {
         Notify.create("No se encontró la sede");
       }

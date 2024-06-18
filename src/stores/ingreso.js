@@ -9,7 +9,7 @@ export const useIngresoStore = defineStore("Ingreso", () => {
 
     let getIngreso = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/ingreso",{
+            let res = await axios.get("/ingreso",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -23,7 +23,7 @@ export const useIngresoStore = defineStore("Ingreso", () => {
     };
     let getSede = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/sede",{
+            let res = await axios.get("/sede",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -37,7 +37,7 @@ export const useIngresoStore = defineStore("Ingreso", () => {
     };
     let getCliente = async () => {
         try {
-            let res = await axios.get("http://localhost:4600/api/clientes",{
+            let res = await axios.get("/clientes",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -51,7 +51,7 @@ export const useIngresoStore = defineStore("Ingreso", () => {
     };
     let postIngreso = async (ingreso) => {
         try {
-            let res = await axios.post("http://localhost:4600/api/ingreso",ingreso,{
+            let res = await axios.post("/ingreso",ingreso,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -65,7 +65,7 @@ export const useIngresoStore = defineStore("Ingreso", () => {
     };
     let actualizarIngreso = async (usuario) => {
         try {
-            const res = await axios.put(`http://localhost:4600/api/ingreso/actualizar/${usuario._id}`,usuario,{
+            const res = await axios.put(`/ingreso/actualizar/${usuario._id}`,usuario,{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -79,7 +79,7 @@ export const useIngresoStore = defineStore("Ingreso", () => {
     };
     const getIngresoID = async (sedeId) => {
       try {
-          let res = await axios.get(`http://localhost:4600/api/ingreso/${sedeId}`,{
+          let res = await axios.get(`/ingreso/${sedeId}`,{
             headers: {
               "x-token":useUsuario.token,
             },
