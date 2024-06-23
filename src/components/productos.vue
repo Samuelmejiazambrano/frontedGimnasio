@@ -1,134 +1,163 @@
 <template>
   <div id="zzz">
     <h2 class="title">Lista de Sedes</h2>
-        <div class="q-pa-md" id="cont">
-
-    <div class="btn">
-   
-         <q-select
-         class="select"
+    <div class="q-pa-md" id="cont">
+      <div class="btn">
+        <q-select
+          class="select"
           v-model="selectedSedeId"
           :options="options"
           label="Seleccionar Sede"
         />
-      <q-btn color="green" class="qqq" icon="search" @click="buscarSede">
-        Buscar Sede
-      </q-btn>
-      <q-btn color="green" class="qqq" icon="add_location" @click="abrir(1)">
-        agregar
-      </q-btn>
-  <select class="select" v-model="selectedOption" id="selectAccion" @change="seleccionarAccion">
-            <option value="listarTodos">Listar Todas las Sedes</option>
-            <option value="listarActivos">Listar Sedes Activos</option>
-            <option value="listarInactivos">Listar Sedes Inactivos</option>
-          </select>
-    </div>
-    <div style="width: 150vh">
-      <q-dialog v-model="alert" persistent>
-        <q-card class="" style="width: 700px">
-          <q-card-section style="background-color: #344860; margin-bottom: 20px">
-            <div class="text-h6 text-white">
-              {{ accion == 1 ? "Agregar Instructor" : "Editar Instructor" }}
-            </div>
-          </q-card-section>
-          <q-input
-            outlined
-            v-model="codigo"
-            label="Codigo"
-            class="q-my-md q-mx-md"
-            type="number"
-          />
-          <q-input
-            outlined
-            v-model="nombre"
-            label="Nombre de la Sede"
-            class="q-my-md q-mx-md"
-            type="text"
-          />
-          <q-input
-            outlined
-            v-model="direccion"
-            label="Dirrecion de la Sede"
-            class="q-my-md q-mx-md"
-            type="text"
-          />
-          <q-input
-            outlined
-            v-model="hora"
-            label="Horario"
-            class="q-my-md q-mx-md"
-            type="text"
-          />
-          <q-input
-            outlined
-            v-model="ciudad"
-            label="Ciudad de la Sede"
-            class="q-my-md q-mx-md"
-            type="text"
-          />
-          <q-input
-            outlined
-            v-model="telefono"
-            type="tel"
-            label="Telefono"
-            class="q-my-md q-mx-md"
-          />
-          <q-card-actions align="right">
-            <q-btn
-              @click="accion === 1 ? agregarSede() : editarSede()"
-              color="red"
-              class="text-white"
-            >
-              {{ accion === 1 ? "Agregar" : "Editar" }}
-              <template v-slot:loading>
-                <q-spinner color="primary" size="1em" />
-              </template>
-            </q-btn>
-            <q-btn label="Cerrar" color="black" outline @click="cerrar" />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-      <div class="q-pa-md">
-        <q-table
-          title="Sedes"
-          :rows="rows"
-          :columns="columns"
-          row-key="_id"
-          class="tabla"
+        <q-btn
+          color="green"
+          class="qqq"
+          icon="search"
+          @click="buscarSede"
+          :disable="loading"
         >
-          <template v-slot:body-cell-createAt="props">
-            <q-td :props="props">
-              {{ moment(props.row.createAt).format("dddd, D MMMM YYYY") }}
-            </q-td>
+          <template v-slot:loading>
+            <q-spinner color="primary" size="1em" />
           </template>
-          <template v-slot:body-cell-estado="props">
-            <q-td :props="props">
-              <div class="q-pa-md q-gutter-sm"></div>
-              <p :style="{ color: props.row.estado == 1 ? 'green' : 'red' }">
-                {{ props.row.estado == 1 ? "Activo" : "Inactivo" }}
-              </p>
-            </q-td>
-          </template>
-          <template v-slot:body-cell-opciones="props">
-            <q-td :props="props">
-              <q-btn @click="cargarDatosUsuario(props.row)">
-                <span role="img" aria-label="Editar">✏️</span>
+          <q-tooltip>Buscar Sede</q-tooltip>
+        </q-btn>
+        <q-btn color="green" class="qqq" icon="add_location" @click="abrir(1)">
+          agregar
+          <q-tooltip>Agregar Sede</q-tooltip>
+        </q-btn>
+        <select
+          class="select"
+          v-model="selectedOption"
+          id="selectAccion"
+          @change="seleccionarAccion"
+        >
+          <option value="listarTodos">Listar Todas las Sedes</option>
+          <option value="listarActivos">Listar Sedes Activos</option>
+          <option value="listarInactivos">Listar Sedes Inactivos</option>
+        </select>
+      </div>
+
+      <div style="width: 150vh">
+        <q-dialog v-model="alert" persistent>
+          <q-card class="" style="width: 700px">
+            <q-card-section
+              style="background-color: #344860; margin-bottom: 20px"
+            >
+              <div class="text-h6 text-white">
+                {{ accion == 1 ? "Agregar Instructor" : "Editar Instructor" }}
+              </div>
+            </q-card-section>
+            <q-input
+              outlined
+              v-model="codigo"
+              label="Codigo"
+              class="q-my-md q-mx-md"
+              type="number"
+            />
+            <q-input
+              outlined
+              v-model="nombre"
+              label="Nombre de la Sede"
+              class="q-my-md q-mx-md"
+              type="text"
+            />
+            <q-input
+              outlined
+              v-model="direccion"
+              label="Dirrecion de la Sede"
+              class="q-my-md q-mx-md"
+              type="text"
+            />
+            <q-input
+              outlined
+              v-model="hora"
+              label="Horario"
+              class="q-my-md q-mx-md"
+              type="text"
+            />
+            <q-input
+              outlined
+              v-model="ciudad"
+              label="Ciudad de la Sede"
+              class="q-my-md q-mx-md"
+              type="text"
+            />
+            <q-input
+              outlined
+              v-model="telefono"
+              type="tel"
+              label="Telefono"
+              class="q-my-md q-mx-md"
+            />
+            <q-card-actions align="right">
+              <q-btn
+                @click="accion === 1 ? agregarSede() : editarSede()"
+                color="red"
+                class="text-white"
+              >
+                {{ accion === 1 ? "Agregar" : "Editar" }}
+                <template v-slot:loading>
+                  <q-spinner color="primary" size="1em" />
+                </template>
+                <q-tooltip>{{
+                  accion === 1 ? "Agregar Sede" : "Editar Sede"
+                }}</q-tooltip>
               </q-btn>
-              <q-btn @click="togglePlanStatus(props.row)">
-                <span role="img" aria-label="Toggle">
-                  {{ props.row.estado == 1 ? "❌" : "✅" }}
-                </span>
-              </q-btn>
-            </q-td>
-          </template>
-        </q-table>
+              <q-btn label="Cerrar" color="black" outline @click="cerrar" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+
+        <div class="q-pa-md">
+          <q-table
+            title="Sedes"
+            :rows="rows"
+            :columns="columns"
+            row-key="_id"
+            class="tabla"
+            :loading="loading"
+          >
+            <template v-slot:body-cell-createAt="props">
+              <q-td :props="props">
+                {{ moment(props.row.createAt).format("dddd, D MMMM YYYY") }}
+              </q-td>
+            </template>
+            <template v-slot:body-cell-estado="props">
+              <q-td :props="props">
+                <div class="q-pa-md q-gutter-sm"></div>
+                <p :style="{ color: props.row.estado == 1 ? 'green' : 'red' }">
+                  {{ props.row.estado == 1 ? "Activo" : "Inactivo" }}
+                </p>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-opciones="props">
+              <q-td :props="props">
+                <q-btn @click="cargarDatosUsuario(props.row)">
+                  <span role="img" aria-label="Editar">✏️</span>
+                  <q-tooltip>Editar Sede</q-tooltip>
+                </q-btn>
+                <q-btn
+                  @click="togglePlanStatus(props.row)"
+                  :loading="props.row.loading"
+                >
+                  <span role="img" aria-label="Toggle">
+                    {{ props.row.estado == 1 ? "❌" : "✅" }}
+                  </span>
+                  <q-tooltip>{{
+                    props.row.estado == 1 ? "Desactivar Sede" : "Activar Sede"
+                  }}</q-tooltip>
+                  <template v-slot:loading>
+                    <q-spinner color="primary" size="1em" />
+                  </template>
+                </q-btn>
+              </q-td>
+            </template>
+          </q-table>
+        </div>
       </div>
     </div>
   </div>
-    </div>
-
 </template>
-
 
 <script setup>
 import { ref, onMounted } from "vue";
@@ -137,6 +166,7 @@ import moment from "moment";
 import "moment/locale/es";
 import { Notify } from "quasar";
 
+let loading = ref(false);
 let alert = ref(false);
 let nombre = ref("");
 let correo = ref("");
@@ -148,8 +178,7 @@ let telefono = ref("");
 let accion = ref(1);
 let currentId = ref(null);
 let selectedSedeId = ref(null);
-let options = ref([]); // Declaramos una referencia para las opciones del select
-
+let options = ref([]);
 
 let useSede = useSedeStore();
 
@@ -181,53 +210,67 @@ const seleccionarAccion = async () => {
   }
 };
 let listarIngesos = async () => {
-  r = await useSede.getSede();
-  rows.value = r.sedes;
-  options.value = r.sedes.map((sedes) => ({
-    label: sedes.nombre,
-    value: sedes._id,
-  }));
-  console.log(r);
+  loading.value = true;
+  try {
+    r = await useSede.getSede();
+    rows.value = r.sedes;
+    options.value = r.sedes.map((sedes) => ({
+      label: sedes.nombre,
+      value: sedes._id,
+    }));
+    console.log(r);
+  } catch {
+    Notify.create("Error al obtener sedes ");
+  } finally {
+    loading.value = false;
+  }
 };
 
 const listarSedeActivos = async () => {
+  loading.value = true;
   try {
     const res = await useSede.getSedeActivos();
     rows.value = res.sedes;
     Notify.create({
-        message: "Sedes Activos",
-        color: "green",
-      });
+      message: "Sedes Activos",
+      color: "green",
+    });
   } catch (error) {
     console.error("Error al listar sedes activas:", error);
     Notify.create("Error al obtener sedes activas");
+  } finally {
+    loading.value = false;
   }
 };
 
 const listarSedeInactivo = async () => {
+  loading.value = true;
   try {
     const res = await useSede.getSedeInactivos();
     rows.value = res.sedes;
     Notify.create({
-        message: "Sedes Inactivas",
-        color: "green",
-      });
+      message: "Sedes Inactivas",
+      color: "green",
+    });
   } catch (error) {
     console.error("Error al listar sedes inactivas:", error);
     Notify.create("Error al obtener sedes inactivas");
+  } finally {
+    loading.value = false;
   }
 };
 
 const buscarSede = async () => {
+  loading.value = true;
   try {
     if (selectedSedeId.value) {
       const res = await useSede.getSedeID(selectedSedeId.value.value);
       if (res && res.sedes) {
         rows.value = [res.sedes];
         Notify.create({
-        message: "Sede encontrada",
-        color: "green",
-      });
+          message: "Sede encontrada",
+          color: "green",
+        });
       } else {
         Notify.create("No se encontró la sede");
       }
@@ -237,6 +280,8 @@ const buscarSede = async () => {
   } catch (error) {
     console.error("Error al buscar la sede:", error);
     Notify.create("Error al buscar la sede");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -333,6 +378,7 @@ const editarSede = async () => {
 };
 
 const desactivarSede = async (plan) => {
+  loading.value = true;
   try {
     if (plan && plan._id) {
       await useSede.desactivarSede(plan);
@@ -347,10 +393,13 @@ const desactivarSede = async (plan) => {
   } catch (error) {
     console.error("Error al desactivar la sede:", error);
     Notify.create("Error al desactivar la sede");
+  } finally {
+    loading.value = false;
   }
 };
 
 const activarSede = async (plan) => {
+  loading.value = true;
   try {
     if (plan && plan._id) {
       await useSede.activarSede(plan);
@@ -365,6 +414,8 @@ const activarSede = async (plan) => {
   } catch (error) {
     console.error("Error al activar la sede:", error);
     Notify.create("Error al activar la sede");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -385,7 +436,6 @@ onMounted(() => {
   listarIngesos();
 });
 </script>
-
 
 <style scoped>
 /* Estilos para el título */
@@ -429,21 +479,21 @@ onMounted(() => {
   width: 100%;
   font-family: "Roboto", sans-serif;
 }
-.select{
-width: 300px;
+.select {
+  width: 300px;
 }
 
 .btn {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
- align-items: flex-end;
+  align-items: flex-end;
   gap: 10px;
 }
-.btn >*{
-   border-radius: 30px;
+.btn > * {
+  border-radius: 30px;
 }
-.select{
+.select {
   padding: 10px;
 }
 </style>

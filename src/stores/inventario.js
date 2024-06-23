@@ -107,8 +107,36 @@ export const useInventarioStore = defineStore("Inventario", () => {
           throw error;
       }
   };
+  let getInventarioActivos = async () => {
+    try {
+      let res = await axios.get("/inventario/activos",{
+        headers: {
+          "x-token":useUsuario.token,
+        },
+      });
+      console.log(res);
+      return res.data;
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  };
+  let getInventarioInactivos = async () => {
+    try {
+      let res = await axios.get("/inventario/inactivos",{
+        headers: {
+          "x-token":useUsuario.token,
+        },
+      });
+      console.log(res);
+      return res.data;
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  };
     return {
-        getInventario,agregarInvntario,actualizarInvntario,EliminarInventario,getTotal,activarInventario,desactivarInventario
+        getInventario,agregarInvntario,actualizarInvntario,EliminarInventario,getTotal,activarInventario,desactivarInventario,getInventarioActivos,getInventarioInactivos
     };
 });
 

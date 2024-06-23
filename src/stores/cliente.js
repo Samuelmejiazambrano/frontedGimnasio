@@ -111,7 +111,7 @@ let postSeguimiento = async (usuarioId, seguimientoData) => {
 
     let desactivarCliente = async (usuario) => {
         try {
-            const res = await axios.put(`/clientes/desactivar/${usuario._id}`,{
+            const res = await axios.put(`/clientes/desactivar/${usuario._id}`,"",{
                 headers: {
                   "x-token":useUsuario.token,
                 },
@@ -125,7 +125,7 @@ let postSeguimiento = async (usuarioId, seguimientoData) => {
 
     let activarCliente = async (usuario) => {
         try {
-            const res = await axios.put(`/clientes/activar/${usuario._id}`,{
+            const res = await axios.put(`/clientes/activar/${usuario._id}`,"",{
                 headers: {
                   "x-token":useUsuario.token,
                 },

@@ -51,7 +51,11 @@ export const useUsuarioStore = defineStore("usuario", () => {
   let agregarUsuarios = async (usuario) => {
     try {
       console.log(token.value);
-      const res = await axios.post("/usuario", usuario);
+      const res = await axios.post("/usuario", usuario,{
+        headers: {
+          "x-token": token.value,
+        },
+      });
       console.log("Usuario agregado:", res.data);
       console.log("hola"+token.value);
     } catch (error) {

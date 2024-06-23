@@ -10,6 +10,11 @@ import Registro from "../components/registro.vue";
 import Ingreso from "../components/ingresos.vue";
 import Venta from "../components/venta.vue";
 import Pago from "../components/pagos.vue";
+import Reset from "../components/reset.vue";
+import ResetPassword from "../components/resetpassword.vue";
+
+
+
 import Home from "../components/home.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 
@@ -46,6 +51,16 @@ const routes = [
     { 
         path: "/registro", 
         component: Registro,
+        meta: { hideNavbar: true }
+    },
+    { 
+        path: "/reset", 
+        component: Reset,
+        meta: { hideNavbar: true }
+    },
+    { 
+        path: "/nueva/contrasena", 
+        component: ResetPassword,
         meta: { hideNavbar: true }
     },
     { path: "/home", component: Home },

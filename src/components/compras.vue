@@ -3,30 +3,48 @@
     <h2 class="title">Lista de Planes</h2>
 
     <div class="q-pa-md" id="cont">
-     <div class="btn">
-         
+      <div class="btn">
         <q-select
           class="select"
           v-model="selectedClientId"
           :options="options"
           label="Seleccionar Plan"
         />
-        <q-btn color="green" class="sam" @click="buscarPlan()">Buscar Plan</q-btn>
-        <q-btn color="green" class="sam" @click="abrir(1)">Añadir Plan</q-btn>
-         <select class="select-cont"  v-model="selectedOption" id="selectAccion" @change="seleccionarAccion">
-            <option value="listarTodos">Listar Todos los Planes</option>
-            <option value="listarActivos">Listar Planes Activos</option>
-            <option value="listarInactivos">Listar Planes Inactivos</option>
-          </select>
+
+        <q-btn color="green"           icon="search"
+ class="sam" @click="buscarPlan()" :disable="loading">
+          <q-tooltip>Buscar Plan</q-tooltip>
+          <template v-slot:loading>
+            <q-spinner size="20px" color="white" />
+          </template>
+        </q-btn>
+
+        <q-btn color="green" class="sam" @click="abrir(1)" :disable="loading">
+          Añadir Plan
+          <q-tooltip>Añadir Plan</q-tooltip>
+          <template v-slot:loading>
+            <q-spinner size="20px" color="white" />
+          </template>
+        </q-btn>
+
+        <select
+          class="select-cont"
+          v-model="selectedOption"
+          id="selectAccion"
+          @change="seleccionarAccion"
+          :disabled="loading"
+        >
+          <option value="listarTodos">Listar Todos los Planes</option>
+          <option value="listarActivos">Listar Planes Activos</option>
+          <option value="listarInactivos">Listar Planes Inactivos</option>
+        </select>
       </div>
 
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 500px">
-          <q-card-section
-            style="background-color: #344860; margin-bottom: 20px"
-          >
+          <q-card-section style="background-color: #344860; margin-bottom: 20px">
             <div class="text-h6 text-white">
-              {{ accion == 1 ? "Agregar Plan" : "Editar Plan" }}
+              {{ accion === 1 ? "Agregar Plan" : "Editar Plan" }}
             </div>
           </q-card-section>
           <q-input
@@ -59,44 +77,56 @@
           />
           <q-card-actions align="right">
             <q-btn
-              @click="accion === 1 ? agregarUsuario() : updatePlanes()"
+              @click="accion === 1 ? agregarPlan() : updatePlanes()"
               color="red"
               class="text-white"
+              :disable="loading"
             >
               {{ accion === 1 ? "Agregar" : "Editar" }}
               <template v-slot:loading>
                 <q-spinner color="primary" size="1em" />
               </template>
+              <q-tooltip>{{ accion === 1 ? "Agregar Plan" : "Editar Plan" }}</q-tooltip>
             </q-btn>
-            <q-btn label="Cerrar" color="black" outline @click="cerrar" />
+            <q-btn label="Cerrar" color="black" outline @click="cerrar" :disable="loading">
+              Cerrar
+              <q-tooltip>Cerrar</q-tooltip>
+            </q-btn>
           </q-card-actions>
         </q-card>
       </q-dialog>
+
       <q-table
         class="tabla"
         :rows="rows"
         :columns="columns"
         title="Planes"
         row-key="_id"
+        :loading="loading"
       >
         <template v-slot:body-cell-estado="props">
           <q-td :props="props">
             <div class="q-pa-md q-gutter-sm"></div>
-            <p :style="{ color: props.row.estado == 1 ? 'green' : 'red' }">
-              {{ props.row.estado == 1 ? "Activo" : "Inactivo" }}
+            <p :style="{ color: props.row.estado === 1 ? 'green' : 'red' }">
+              {{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
             </p>
           </q-td>
         </template>
         <template v-slot:body-cell-opciones="props">
           <q-td :props="props">
             <div class="q-pa-md q-gutter-sm"></div>
-            <q-btn @click="togglePlanStatus(props.row)">
+            <q-btn @click="togglePlanStatus(props.row)" :loading="props.row.loading">
               <span role="img" aria-label="Toggle">
-                {{ props.row.estado == 1 ? "❌" : "✅" }}
+                {{ props.row.estado === 1 ? "❌" : "✅" }}
               </span>
+              <q-tooltip>{{ props.row.estado === 1 ? "Desactivar Plan" : "Activar Plan" }}</q-tooltip>
+              <template v-slot:loading>
+                <q-spinner color="primary" size="1em" />
+              </template>
             </q-btn>
-            <q-btn @click="cargarDatosUsuario(props.row)">
+            <q-btn @click="cargarDatosUsuario(props.row)" :disable="loading">
               <span role="img" aria-label="Editar">✏️</span>
+              <q-tooltip>Editar Plan</q-tooltip>
             </q-btn>
           </q-td>
         </template>
@@ -113,7 +143,7 @@ import { usePlanStore } from "../stores/plan.js";
 let usePlan = usePlanStore();
 let accion = ref(1);
 let rows = ref([]);
-let options = ref([]); // Declaramos una referencia para las opciones del select
+let options = ref([]);
 let columns = ref([
   { name: "codigo", label: "codigo", align: "center", field: "codigo" },
   { name: "valor", label: "Valor", align: "center", field: "valor" },
@@ -133,55 +163,79 @@ let columns = ref([
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
 
+let loading = ref(false); // Variable para controlar el estado de carga
 let selectedOption = ref("listarTodos");
+
 const seleccionarAccion = async () => {
-  if (selectedOption.value === "listarTodos") {
-    await listarIngesos();
-  } else if (selectedOption.value === "listarActivos") {
-    await listarPLanActivos();
-  } else if (selectedOption.value === "listarInactivos") {
-    await listarPlanInactivo();
+  loading.value = true;
+  try {
+    if (selectedOption.value === "listarTodos") {
+      await listarIngesos();
+    } else if (selectedOption.value === "listarActivos") {
+      await listarPLanActivos();
+    } else if (selectedOption.value === "listarInactivos") {
+      await listarPlanInactivo();
+    }
+  } catch (error) {
+    console.error("Error en seleccionarAccion:", error);
+    Notify.create("Error al seleccionar acción");
+  } finally {
+    loading.value = false; // Desactivar carga después de la operación
   }
 };
-let listarIngesos = async () => {
-  let r = await usePlan.getPlan();
-  rows.value = r.planes;
-  options.value = r.planes.map((plan) => ({
-    label: plan.descripcion,
-    value: plan._id,
-  }));
-  Notify.create({
-        message: "Listado de Planes correctamente  ",
-        color: "green",
-      });
-  console.log(r);
+
+const listarIngesos = async () => {
+  loading.value = true;
+  try {
+    let r = await usePlan.getPlan();
+    rows.value = r.planes;
+    options.value = r.planes.map((plan) => ({
+      label: plan.descripcion,
+      value: plan._id,
+    }));
+    Notify.create({
+      message: "Listado de Planes correctamente",
+      color: "green",
+    });
+  } catch (error) {
+    console.error("Error al listar planes:", error);
+    Notify.create("Error al obtener listado de planes");
+  } finally {
+    loading.value = false;
+  }
 };
 
 const listarPLanActivos = async () => {
+  loading.value = true;
   try {
     const res = await usePlan.getPlanActivos();
     rows.value = res.planes;
     Notify.create({
-        message: "Listado de Planes Activos  ",
-        color: "green",
-      });
+      message: "Listado de Planes Activos",
+      color: "green",
+    });
   } catch (error) {
     console.error("Error al listar planes activos:", error);
-    Notify.create("Error al obtener planes activos");
+    Notify.create("Error al obtener listado de planes activos");
+  } finally {
+    loading.value = false;
   }
 };
 
 const listarPlanInactivo = async () => {
+  loading.value = true;
   try {
     const res = await usePlan.getPlanInactivos();
     rows.value = res.planes;
     Notify.create({
-        message: "Listado de Planes Inactivos  ",
-        color: "green",
-      });
+      message: "Listado de Planes Inactivos",
+      color: "green",
+    });
   } catch (error) {
     console.error("Error al listar planes inactivos:", error);
-    Notify.create("Error al obtener planes inactivos");
+    Notify.create("Error al obtener listado de planes inactivos");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -205,6 +259,7 @@ const cargarDatosUsuario = (usuario) => {
 };
 
 const updatePlanes = async () => {
+  loading.value = true;
   try {
     await usePlan.UpdatePlan({
       _id: currentId.value,
@@ -215,9 +270,19 @@ const updatePlanes = async () => {
     });
 
     cerrar();
-    listarIngesos();
+    await listarIngesos();
+    Notify.create({
+      message: "Plan actualizado correctamente",
+      color: "green",
+    });
   } catch (error) {
     console.error("Error al actualizar el plan:", error);
+    Notify.create({
+      message: "Error al actualizar el plan",
+      color: "red",
+    });
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -232,16 +297,17 @@ let valor = ref(0);
 let currentId = ref(null);
 let selectedClientId = ref(null);
 
-async function agregarUsuario() {
-  const val = (/\B(?=(\d{3})+(?!\d))/g, ".");
-  if (CantDias.value == "") {
-    Notify.create("por favor ingrese la cantidad de dias ");
-  } else if (descripcion.value == "") {
-    Notify.create("por favor ingrese la descripcion");
-  } else if (codigo.value.length <= 3) {
-    Notify.create("por favor ingrese el codigo");
- }else {
-    try {
+async function agregarPlan() {
+  loading.value = true;
+  try {
+    const val = (/\B(?=(\d{3})+(?!\d))/g, ".");
+    if (CantDias.value == "") {
+      Notify.create("Por favor ingrese la cantidad de días");
+    } else if (descripcion.value == "") {
+      Notify.create("Por favor ingrese la descripción");
+    } else if (codigo.value.length <= 3) {
+      Notify.create("Por favor ingrese el código");
+    } else {
       await usePlan.agregarPlan({
         descripcion: descripcion.value,
         codigo: codigo.value,
@@ -249,22 +315,25 @@ async function agregarUsuario() {
         CantDias: CantDias.value,
       });
       cerrar();
-      listarIngesos();
+      await listarIngesos();
       Notify.create({
-        message: "Plan Añadido Correctamente",
+        message: "Plan añadido correctamente",
         color: "green",
       });
-    } catch (error) {
-      console.error("Error al agregar plan:", error);
-      Notify.create({
-        message: "Error al añadir Plan Correctamente",
-        color: "red",
-      });
     }
+  } catch (error) {
+    console.error("Error al agregar plan:", error);
+    Notify.create({
+      message: "Error al añadir plan",
+      color: "red",
+    });
+  } finally {
+    loading.value = false;
   }
 }
 
 const desactivarPlan = async (plan) => {
+  loading.value = true;
   try {
     if (plan && plan._id) {
       await usePlan.desactivarPlan(plan);
@@ -272,17 +341,20 @@ const desactivarPlan = async (plan) => {
         message: "Plan desactivado correctamente",
         color: "green",
       });
-      listarIngesos();
+      await listarIngesos();
     } else {
       Notify.create("Plan no válido");
     }
   } catch (error) {
     console.error("Error al desactivar plan:", error);
     Notify.create("Error al desactivar plan");
+  } finally {
+    loading.value = false;
   }
 };
 
 const activarPlan = async (plan) => {
+  loading.value = true;
   try {
     if (plan && plan._id) {
       await usePlan.activarPlan(plan);
@@ -290,18 +362,21 @@ const activarPlan = async (plan) => {
         message: "Plan activado correctamente",
         color: "green",
       });
-      listarIngesos();
+      await listarIngesos();
     } else {
       Notify.create("Plan no válido");
     }
   } catch (error) {
     console.error("Error al activar plan:", error);
     Notify.create("Error al activar plan");
+  } finally {
+    loading.value = false;
   }
 };
 
 const togglePlanStatus = async (plan) => {
   try {
+    loading.value = true;
     if (plan.estado === 1) {
       await desactivarPlan(plan);
     } else {
@@ -310,12 +385,15 @@ const togglePlanStatus = async (plan) => {
   } catch (error) {
     console.error("Error al cambiar el estado del plan:", error);
     Notify.create("Error al cambiar el estado del plan");
+  } finally {
+    loading.value = false;
   }
 };
 
 const buscarPlan = async () => {
   try {
     if (selectedClientId.value) {
+      loading.value = true;
       const response = await usePlan.getPlanID(selectedClientId.value.value);
       if (response && response.planes) {
         if (Array.isArray(response.planes)) {
@@ -323,11 +401,10 @@ const buscarPlan = async () => {
         } else {
           rows.value = [response.planes];
         }
-        console.log(response.planes);
         Notify.create({
-        message: "Plan Encontrado Correctamente",
-        color: "green",
-      });
+          message: "Plan encontrado correctamente",
+          color: "green",
+        });
       } else {
         Notify.create("No se encontraron planes");
       }
@@ -337,6 +414,8 @@ const buscarPlan = async () => {
   } catch (error) {
     console.error("Error al buscar plan por ID:", error);
     Notify.create("Error al buscar plan por ID");
+  } finally {
+    loading.value = false;
   }
 };
 </script>
@@ -390,24 +469,22 @@ const buscarPlan = async () => {
   font-size: 14px;
   border-radius: 20px;
   height: 50px;
-    margin-top: 10px;
-
+  margin-top: 10px;
 }
 
 .select-cont {
-   width: 20%;
- font-size: 20px;
- height: 40%;
- padding: 6px;
- border-radius: 10px;
+  width: 20%;
+  font-size: 20px;
+  height: 40%;
+  padding: 6px;
+  border-radius: 10px;
   margin-top: 20px;
-
 }
 .select {
-   width: 20%;
- font-size: 20px;
- height: 40%;
- padding: 6px;
- border-radius: 20px;
+  width: 20%;
+  font-size: 20px;
+  height: 40%;
+  padding: 6px;
+  border-radius: 20px;
 }
 </style>

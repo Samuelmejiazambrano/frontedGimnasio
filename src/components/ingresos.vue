@@ -11,9 +11,12 @@
           label="Seleccionar Ingreso"
         />
         <q-btn color="green" icon="search" @click="buscarIngreso">
-          Buscar Ingreso
+          <q-tooltip>Buscar Ingreso</q-tooltip>
         </q-btn>
-        <q-btn color="green" @click="abrir(1)">Añadir Producto</q-btn>
+        <q-btn color="green" @click="abrir(1)">
+          <q-tooltip>Añadir Producto</q-tooltip>
+          Añadir Producto
+        </q-btn>
       </div>
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 500px">
@@ -63,9 +66,13 @@
               color="red"
               class="text-white"
             >
+              <q-tooltip>{{ accion === 1 ? "Agregar" : "Editar" }}</q-tooltip>
               {{ accion === 1 ? "Agregar" : "Editar" }}
             </q-btn>
-            <q-btn label="Cerrar" color="black" outline @click="cerrar" />
+            <q-btn label="Cerrar" color="black" outline @click="cerrar">
+              <q-tooltip>Cerrar</q-tooltip>
+              Cerrar
+            </q-btn>
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -76,6 +83,7 @@
         :columns="columns"
         row-key="codigo"
         class="rounded-borders"
+        :loading="loading"
         dense
       >
         <template v-slot:head-top>
@@ -98,6 +106,7 @@
         <template v-slot:body-cell-opciones="props">
           <q-td :props="props" class="q-pr-xs">
             <q-btn @click="cargarDatosIngresos(props.row)">
+              <q-tooltip>Editar</q-tooltip>
               <span role="img" aria-label="Editar">✏️</span>
             </q-btn>
           </q-td>
@@ -113,7 +122,7 @@ import { Notify } from "quasar";
 import moment from "moment";
 import "moment/locale/es";
 import { useIngresoStore } from "../stores/ingreso.js";
-
+let loading = ref(false);
 let alert = ref(false);
 let sede = ref([]);
 let cliente = ref([]);
@@ -165,6 +174,8 @@ let columns = ref([
 ]);
 
 let listarMaquinas = async () => {
+  loading.value = true;
+
   try {
     let response = await useIngreso.getIngreso();
     let ingresos = response.ingresos || [];
@@ -192,6 +203,8 @@ let listarMaquinas = async () => {
     }));
   } catch (error) {
     console.error("Error al listar los datos:", error);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -210,21 +223,30 @@ const agregarIngreso = async () => {
     Notify.create("Por favor seleccione un cliente");
     return;
   } else {
+    loading.value = true;
     try {
       await useIngreso.postIngreso({
         codigo: codigo.value,
         sede: idSedeSeleccionada,
         cliente: idclienteSeleccionada,
       });
+         Notify.create({
+        message: "Ingresos Agregados",
+        color: "green",
+      });
       cerrar();
       listarMaquinas();
     } catch (error) {
       console.error("Error al agregar ingreso:", error);
+    } finally {
+      loading.value = false;
     }
   }
 };
 
 const editarIngreso = async () => {
+  loading.value = true;
+
   try {
     await useIngreso.actualizarIngreso({
       _id: currentId.value,
@@ -232,28 +254,38 @@ const editarIngreso = async () => {
       sede: idSede.value,
       cliente: idCliente.value,
     });
+         Notify.create({
+        message: "Ingresos Editado",
+        color: "green",
+      });
     cerrar();
     listarMaquinas();
   } catch (error) {
     console.error("Error al editar ingreso:", error);
   }
+  loading.value = false;
 };
 
 const cargarDatosIngresos = (ingreso) => {
   currentId.value = ingreso._id;
   codigo.value = ingreso.codigo;
-  idSede.value = ingreso.sede;
-  idCliente.value = ingreso.cliente;
+  idSede.value = ingreso.sede.ciudad;
+  idCliente.value = ingreso.cliente.nombre;
   abrir(2);
 };
 
 const buscarIngreso = async () => {
+  loading.value = true;
+
   try {
     if (selectedSedeId.value) {
       const res = await useIngreso.getIngresoID(selectedSedeId.value.value);
       if (res && res.ingresos) {
         rows.value = [res.ingresos];
-        Notify.create("Ingreso encontrado");
+             Notify.create({
+        message: "Ingreso Encontrado",
+        color: "green",
+      });
       } else {
         Notify.create("No se encontró la sede");
       }
@@ -263,6 +295,8 @@ const buscarIngreso = async () => {
   } catch (error) {
     console.error("Error al buscar la sede:", error);
     Notify.create("Error al buscar la sede");
+  } finally {
+    loading.value = false;
   }
 };
 

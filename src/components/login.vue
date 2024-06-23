@@ -40,6 +40,13 @@
         ¿No tienes una cuenta?
         <router-link class="link" to="/registro"> Regístrate
         </router-link>
+        
+      </p>
+         <p>
+        ¿se te olvido la contrasena?
+        <router-link class="link" to="/reset"> Regístrate
+        </router-link>
+        
       </p>
     </div>
   </div>

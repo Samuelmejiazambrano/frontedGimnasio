@@ -4,21 +4,23 @@
     <div class="q-pa-md">
       <div style="width: 100%">
         <div
-          style="
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-          "
+      
         >
-          <q-btn
-            color="green"
-            class="moi"
-            icon="inventory"
-            @click="abrirAgregarModal(1)">
-            agregar
+          <div class="btn">
+            <q-btn color="green" class="moi" @click="abrirAgregarModal(1)">
+              Agregar
             </q-btn>
-            
+            <select
+              class="select"
+              v-model="selectedOption"
+              id="selectAccion"
+              @change="seleccionarAccion"
+            >
+              <option value="listarTodos">Listar Inventario</option>
+              <option value="listarActivos">Listar Inventario Activos</option>
+              <option value="listarInactivos">Listar Inventario Inactivos</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -64,6 +66,7 @@
               @click="accion === 1 ? agregarInventario() : editarInventario()"
               color="red"
               class="text-white"
+              :loading="accion === 1 ? loadingAgregar : loadingEditar"
             >
               {{ accion === 1 ? "Agregar" : "Editar" }}
               <template v-slot:loading>
@@ -80,43 +83,61 @@
         </q-card>
       </q-dialog>
 
-  <q-table
-  title="Inventario"
-  title-class="text-weight-bolder text-h5"
-  :rows="rows"
-  :columns="columns"
-  row-key="_id"
-  class="tabla"
->
-  <template v-slot:body-cell-createAt="props">
-    <q-td :props="props">
-      {{ moment(props.row.createAt).format('dddd, D MMMM YYYY') }}
-    </q-td>
-  </template>
+      <q-table
+        title="Inventario"
+        title-class="text-weight-bolder text-h5"
+        :rows="rows"
+        :columns="columns"
+        row-key="_id"
+        class="tabla"
+        :loading="loadingListado"
+      >
+        <template v-slot:body-cell-estado="props">
+          <q-td :props="props">
+            <div class="q-pa-md q-gutter-sm"></div>
+            <p :style="{ color: props.row.estado == 1 ? 'green' : 'red' }">
+              {{ props.row.estado == 1 ? "Activo" : "Inactivo" }}
+            </p>
+          </q-td>
+        </template>
+        <template v-slot:body-cell-createAt="props">
+          <q-td :props="props">
+            {{ moment(props.row.createAt).format("dddd, D MMMM YYYY") }}
+          </q-td>
+        </template>
 
-  <!-- Add this template for the "Opciones" column -->
-  <template v-slot:body-cell-opciones="props">
-    <q-td :props="props">
-      <div class="q-pa-md q-gutter-sm">
-        <q-btn @click="cargarDatosUsuario(props.row)">
-          <span role="img" aria-label="Editar">✏️</span>
-        </q-btn>
-        <q-btn @click="togglePlanStatus(props.row)">
-            <span role="img" aria-label="Toggle">
-              {{ props.row.estado == 1 ? "❌" : "✅" }}
-            </span>
-          </q-btn>
-      </div>
-    </q-td>
-  </template>
-</q-table>
+        <template v-slot:body-cell-opciones="props">
+          <q-td :props="props">
+            <div class="q-pa-md q-gutter-sm">
+              <q-btn @click="cargarDatosUsuario(props.row)" tooltip="Editar">
+                <span role="img" aria-label="Editar">✏️</span>
+                <q-tooltip>Editar Plan</q-tooltip>
+              </q-btn>
+              <q-btn
+                @click="togglePlanStatus(props.row)"
+                :loading="props.row.loading"
+              >
+                <q-tooltip>{{
+                  props.row.estado == 1 ? "Desactivar Plan" : "Activar Plan"
+                }}</q-tooltip>
 
-    <q-tr>
-      <q-td colspan="4" class="text-right">
-        <div class="text-h6 total">Total: {{total.total}}</div>
-      </q-td>
-    </q-tr>
-    
+                <span role="img" aria-label="Toggle">
+                  {{ props.row.estado == 1 ? "❌" : "✅" }}
+                </span>
+                <template v-slot:loading>
+                  <q-spinner color="primary" size="1em" />
+                </template>
+              </q-btn>
+            </div>
+          </q-td>
+        </template>
+      </q-table>
+
+      <q-tr>
+        <q-td colspan="4" class="text-right">
+          <div class="text-h6 total">Total: {{ total.total }}</div>
+        </q-td>
+      </q-tr>
     </div>
   </div>
 </template>
@@ -131,8 +152,13 @@ let useInventario = useInventarioStore();
 
 let rows = ref([]);
 let columns = ref([
-  { name: "codigo", label: "Código", align: "center", field: "codigo" },
-  { name: "valor", label: "Valor", align: "center", field: (row) => formatNumber(row.valor), },
+  { name: "codigo", label: "Producto", align: "center", field: "codigo" },
+  {
+    name: "valor",
+    label: "Valor",
+    align: "center",
+    field: (row) => formatNumber(row.valor),
+  },
   { name: "cantidad", label: "Cantidad", align: "center", field: "cantidad" },
   {
     name: "descripcion",
@@ -158,24 +184,75 @@ let cantidad = ref("");
 let accion = ref(1);
 let currentId = ref(null);
 let total = ref(0);
-
-
+let loadingListado = ref(false);
+let loadingAgregar = ref(false);
+let loadingEditar = ref(false);
+let loadingActivar = ref(false);
+let selectedOption = ref("listarTodos");
+const seleccionarAccion = async () => {
+  if (selectedOption.value === "listarTodos") {
+    await listarInventario();
+  } else if (selectedOption.value === "listarActivos") {
+    await listarInventarioActivos();
+  } else if (selectedOption.value === "listarInactivos") {
+    await listarInventarioInactivo();
+  }
+};
 const formatNumber = (number) => {
   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
 const listarInventario = async () => {
-  const response = await useInventario.getInventario();
-  total.value = await useInventario.getTotal();
-  console.log(total.value);
-  
-  rows.value = response.inventarios;
-  Notify.create({
-        message: "Listado del Inventario   ",
-        color: "green",
-      });
+  loadingListado.value = true;
+  try {
+    const response = await useInventario.getInventario();
+    total.value = await useInventario.getTotal();
+    console.log(total.value);
+
+    rows.value = response.inventarios;
+    Notify.create({
+      message: "Listado del Inventario",
+      color: "green",
+    });
+  } catch (error) {
+    console.error("Error al listar inventario:", error);
+  } finally {
+    loadingListado.value = false;
+  }
 };
-const formattedDate = moment().format("dddd, D MMMM YYYY");
+const listarInventarioActivos = async () => {
+  loadingListado.value = true;
+  try {
+    const res = await useInventario.getInventarioActivos();
+    rows.value = res.sedes;
+    Notify.create({
+      message: "inventarios Activos",
+      color: "green",
+    });
+  } catch (error) {
+    console.error("Error al listar sedes activas:", error);
+    Notify.create("Error al obtener sedes activas");
+  } finally {
+    loadingListado.value = false;
+  }
+};
+
+const listarInventarioInactivo = async () => {
+  loadingListado.value = true;
+  try {
+    const res = await useInventario.getInventarioInactivos();
+    rows.value = res.sedes;
+    Notify.create({
+      message: "inventarios Inactivas",
+      color: "green",
+    });
+  } catch (error) {
+    console.error("Error al listar sedes inactivas:", error);
+    Notify.create("Error al obtener sedes inactivas");
+  } finally {
+    loadingListado.value = false;
+  }
+};
 
 const agregarInventario = async () => {
   if (descripcion.value === "") {
@@ -187,6 +264,7 @@ const agregarInventario = async () => {
   } else if (cantidad.value === "") {
     Notify.create("Por favor ingrese la cantidad");
   } else {
+    loadingAgregar.value = true;
     try {
       await useInventario.agregarInvntario({
         descripcion: descripcion.value,
@@ -195,13 +273,15 @@ const agregarInventario = async () => {
         cantidad: cantidad.value,
       });
       Notify.create({
-        message: "Inventario Agregado Exitosamente ",
+        message: "Inventario Agregado Exitosamente",
         color: "green",
       });
       cerrarAgregarModal();
       listarInventario();
     } catch (error) {
       console.error("Error al agregar inventario:", error);
+    } finally {
+      loadingAgregar.value = false;
     }
   }
 };
@@ -216,6 +296,7 @@ const editarInventario = async () => {
   } else if (cantidad.value === "") {
     Notify.create("Por favor ingrese la cantidad");
   } else {
+    loadingEditar.value = true;
     try {
       await useInventario.actualizarInvntario({
         _id: currentId.value,
@@ -228,6 +309,8 @@ const editarInventario = async () => {
       listarInventario();
     } catch (error) {
       console.error("Error al editar inventario:", error);
+    } finally {
+      loadingEditar.value = false;
     }
   }
 };
@@ -268,30 +351,35 @@ function limpiarFormulario() {
   cantidad.value = "";
   currentId.value = null;
 }
+
 const desactivarInventario = async (maquinarias) => {
+  maquinarias.loading = true;
   try {
     if (maquinarias && maquinarias._id) {
       await useInventario.desactivarInventario(maquinarias);
       Notify.create({
-        message: "Inventario desactivado correctamente ",
+        message: "Inventario desactivado correctamente",
         color: "green",
       });
-      listarInventario(); 
+      listarInventario();
     } else {
       Notify.create("Plan no válido");
     }
   } catch (error) {
     console.error("Error al desactivar plan:", error);
     Notify.create("Error al desactivar plan");
+  } finally {
+    maquinarias.loading = false;
   }
 };
 
 const activarInventario = async (maquinaria) => {
+  maquinaria.loading = true;
   try {
     if (maquinaria && maquinaria._id) {
       await useInventario.activarInventario(maquinaria);
       Notify.create({
-        message: "Inventario activado correctamente ",
+        message: "Inventario activado correctamente",
         color: "green",
       });
       listarInventario();
@@ -301,10 +389,12 @@ const activarInventario = async (maquinaria) => {
   } catch (error) {
     console.error("Error al activar plan:", error);
     Notify.create("Error al activar plan");
+  } finally {
+    maquinaria.loading = false;
   }
 };
+
 const togglePlanStatus = async (maquinarias) => {
-  console.log(maquinarias);
   try {
     if (maquinarias.estado === 1) {
       await desactivarInventario(maquinarias);
@@ -318,6 +408,7 @@ const togglePlanStatus = async (maquinarias) => {
 };
 
 onMounted(() => {
+
   listarInventario();
 });
 </script>
@@ -345,8 +436,22 @@ onMounted(() => {
 .q-table-body .q-btn .q-icon {
   font-size: 18px;
 }
-
-
+.btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 15px;
+  margin-bottom: 10px;
+  
+}
+.btn > * {
+  border-radius: 30px;
+}
+.select {
+  width: 250px;
+  padding: 8px;
+}
 #rrr {
   display: flex;
   flex-direction: column;
@@ -362,10 +467,10 @@ onMounted(() => {
 .tabla {
   width: 150vh;
 }
-  .total {
-    font-size: 1.5rem; 
-    margin-top: 20px;
-    text-align: right; 
-    width: 100%; 
-  }
+.total {
+  font-size: 1.5rem;
+  margin-top: 20px;
+  text-align: right;
+  width: 100%;
+}
 </style>

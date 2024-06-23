@@ -61,34 +61,44 @@
               <template v-slot:loading>
                 <q-spinner color="primary" size="1em" />
               </template>
+              <q-tooltip
+                >{{ accion === 1 ? "Agregar" : "Editar" }} Pago</q-tooltip
+              >
             </q-btn>
-            <q-btn label="Cerrar" color="black" outline @click="cerrar" />
+            <q-btn label="Cerrar" color="black" outline @click="cerrar">
+              <q-tooltip>Cerrar</q-tooltip>
+            </q-btn>
           </q-card-actions>
         </q-card>
       </q-dialog>
     </div>
 
     <div class="q-pa-md">
-      <div class="btn" >
-        
-         <q-select
-         class="select"
+      <div class="btn">
+        <q-select
+          class="select"
           v-model="selectedSedeId"
           :options="options"
-          label="Seleccionar Cliente"
+          label="Seleccionar Pagos"
         />
-         <q-btn color="green"  icon="search" @click="buscarPago">
-        Buscar Pago
-      </q-btn>
- 
-        <q-btn color="green"  @click="abrir(1)"
-          >Añadir Producto</q-btn
+        <q-btn color="green" icon="search" @click="buscarPago">
+          <q-tooltip>Buscar Pago</q-tooltip>
+        </q-btn>
+
+        <q-btn color="green" @click="abrir(1)">
+          <q-tooltip>Añadir Producto</q-tooltip>
+          Añadir Pagos
+        </q-btn>
+        <select
+          class="select"
+          v-model="selectedOption"
+          id="selectAccion"
+          @change="seleccionarAccion"
         >
-           <select class="select" v-model="selectedOption" id="selectAccion" @change="seleccionarAccion">
-            <option value="listarTodos">Listar Todos los Planes</option>
-            <option value="listarActivos">Listar Planes Activos</option>
-            <option value="listarInactivos">Listar Planes Inactivos</option>
-          </select>
+          <option value="listarTodos">Listar Todos los Pagos</option>
+          <option value="listarActivos">Listar Pagos Activos</option>
+          <option value="listarInactivos">Listar Pagos Inactivos</option>
+        </select>
       </div>
       <q-table
         title="Pagos"
@@ -97,9 +107,10 @@
         :columns="columns"
         row-key="codigo"
         class="rounded-borders"
+        :loading="loading"
         dense
       >
-         <template v-slot:body-cell-estado="props">
+        <template v-slot:body-cell-estado="props">
           <q-td :props="props">
             <div class="q-pa-md q-gutter-sm"></div>
             <p :style="{ color: props.row.estado == 1 ? 'green' : 'red' }">
@@ -109,13 +120,16 @@
         </template>
         <template v-slot:body-cell-opciones="props">
           <q-td :props="props" class="q-pr-xs">
-         
             <q-btn @click="togglePlanStatus(props.row)">
+              <q-tooltip>{{
+                props.row.estado === 1 ? "Desactivar Plan" : "Activar Plan"
+              }}</q-tooltip>
               <span role="img" aria-label="Toggle">
                 {{ props.row.estado === 1 ? "❌" : "✅" }}
               </span>
             </q-btn>
             <q-btn @click="cargarDatosPago(props.row)">
+              <q-tooltip>Editar</q-tooltip>
               <span role="img" aria-label="Editar">✏️</span>
             </q-btn>
           </q-td>
@@ -129,7 +143,7 @@
 import { ref, onMounted } from "vue";
 import { Notify } from "quasar";
 import { usePagoStore } from "../stores/pago.js";
-
+let loading = ref(false);
 let alert = ref(false);
 let codigo = ref("");
 let idPagos = ref("");
@@ -139,9 +153,8 @@ let accion = ref(1);
 let clientes = ref([]);
 let plan = ref([]);
 let planList = ref("");
-let options = ref([]); 
+let options = ref([]);
 let selectedSedeId = ref(null);
-
 
 let currentId = ref(null);
 
@@ -150,7 +163,18 @@ let usePago = usePagoStore();
 let rows = ref([]);
 let columns = ref([
   { name: "codigo", label: "Código", align: "center", field: "codigo" },
-  { name: "nombrePlan", label: "Plan", align: "center", field: "nombrePlan" }, // Cambio de 'plan' a 'Plan'
+  {
+    name: "plan",
+    label: "Plan",
+    align: "center",
+    field: (row) => row.plan.descripcion,
+  },
+  {
+    name: "idCliente",
+    label: "Cliente",
+    align: "center",
+    field: (row) => (row.idCliente ? row.idCliente.nombre : "N/A"),
+  },
   { name: "valor", label: "Valor", align: "center", field: "valor" },
   { name: "estado", label: "Estado", align: "center", field: "estado" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
@@ -166,38 +190,46 @@ function cerrar() {
 }
 
 const agregarPagos = async () => {
-  const idPagosValue = idPagos.value; // Suponiendo que idSede.value es el objeto { label, value }
+  const idPagosValue = idPagos.value;
   const idPagosSeleccionada = idPagosValue ? idPagosValue.value : null;
-  const idclienteValue = idCliente.value; // Suponiendo que idSede.value es el objeto { label, value }
+  const idclienteValue = idCliente.value;
   const idclienteSeleccionada = idclienteValue ? idclienteValue.value : null;
-  const val=(/\B(?=(\d{3})+(?!\d))/g, ".")
-  if (codigo.value.length<=3){
-    Notify.create("por favor ingrese la descripcion ");
-  } else if (plan.value == "") {
-    Notify.create("por favor ingrese el codigo ");
-  } else if (idCliente.value == "") {
-    Notify.create("por favor ingrese el id maquinaria");
-  } else if (!val.test(valor.value)) {
-    Notify.create("por favor ingrese el responsable");
+  const val = (/\B(?=(\d{3})+(?!\d))/g, ".");
+  if (codigo.value.length <= 3) {
+    Notify.create("Por favor ingrese un código válido.");
+  } else if (!idPagos.value) {
+    Notify.create("Por favor seleccione un plan.");
+  } else if (!idCliente.value) {
+    Notify.create("Por favor seleccione un cliente.");
+  } else if (!valor.value) {
+    Notify.create("Por favor ingrese un valor válido.");
   } else {
-  try {
-    await usePago.agregarPago({
-      codigo: codigo.value,
-      plan: idPagosSeleccionada,
-      idCliente: idclienteSeleccionada,
-      valor: valor.value,
-    });
-    cerrar();
-    listarPagos();
-    Notify.create("Venta agregada exitosamente");
-  } catch (error) {
-    console.error("Error al agregar venta:", error);
-    Notify.create("Error al agregar venta");
-  }
+    loading.value = true;
+    try {
+      await usePago.agregarPago({
+        codigo: codigo.value,
+        plan: idPagosSeleccionada,
+        idCliente: idclienteSeleccionada,
+        valor: valor.value,
+      });
+      cerrar();
+      listarPagos();
+       Notify.create({
+        message: "Pago agregada exitosamente",
+        color: "green",
+      });
+    } catch (error) {
+      console.error("Error al agregar venta:", error);
+      Notify.create("Error al agregar venta");
+    } finally {
+      loading.value = false;
+    }
   }
 };
 
 let listarPagos = async () => {
+  loading.value = true;
+
   try {
     let response = await usePago.getPago();
     rows.value = response.pagos;
@@ -215,20 +247,22 @@ let listarPagos = async () => {
         nombrePlan: plan ? plan.descripcion : "N/A",
       };
     });
-    options.value =response.pagos.map((pago) => ({
-    label: pago.codigo,
-    value: pago._id,
-  }));
+    options.value = response.pagos.map((pago) => ({
+      label: pago.codigo,
+      value: pago._id,
+    }));
   } catch (error) {
     console.error("Error al obtener los pagos:", error);
     Notify.create("Error al obtener los pagos");
+  } finally {
+    loading.value = false;
   }
 };
 
 const cargarDatosPago = (usuario) => {
   codigo.value = usuario.codigo;
-  // idCliente.value = usuario.idCliente;
-  // plan.value = usuario.plan;
+  idCliente.value = usuario.idCliente ? usuario.idCliente.nombre : "N/A";
+  idPagos.value = usuario.plan ? usuario.plan.descripcion : "N/A";
   valor.value = usuario.valor;
   currentId.value = usuario._id;
 
@@ -239,6 +273,7 @@ const editarPagos = async () => {
   const idPagosSeleccionada = idPagosValue ? idPagosValue.value : null;
   const idclienteValue = idCliente.value; // Suponiendo que idSede.value es el objeto { label, value }
   const idclienteSeleccionada = idclienteValue ? idclienteValue.value : null;
+  loading.value = true;
 
   try {
     await usePago.actualizarPago({
@@ -250,30 +285,47 @@ const editarPagos = async () => {
     });
     cerrar();
     listarPagos();
+      Notify.create({
+        message: "Pago editada exitosamente",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al editar inventario:", error);
+  } finally {
+    loading.value = false;
   }
 };
 const desactivarPago = async (pago) => {
+  loading.value = true;
   try {
     if (pago && pago._id) {
       await usePago.desactivarPago(pago);
-      Notify.create("Plan desactivado correctamente");
-      listarPagos(); // Actualizar la lista de planes después de desactivar uno
+        Notify.create({
+        message: "Pago desactivado exitosamente",
+        color: "green",
+      });
+      listarPagos(); 
     } else {
       Notify.create("Plan no válido");
     }
   } catch (error) {
     console.error("Error al desactivar plan:", error);
     Notify.create("Error al desactivar plan");
+  } finally {
+    loading.value = false;
   }
 };
 
 const activarPagos = async (pagos) => {
+  loading.value = true;
+
   try {
     if (pagos && pagos._id) {
       await usePago.activarPago(pagos);
-      Notify.create("Plan activado correctamente");
+        Notify.create({
+        message: "Pago activado exitosamente",
+        color: "green",
+      });
       listarPagos();
     } else {
       Notify.create("Plan no válido");
@@ -294,9 +346,13 @@ const togglePlanStatus = async (pagos) => {
   } catch (error) {
     console.error("Error al cambiar el estado del plan:", error);
     Notify.create("Error al cambiar el estado del plan");
+  } finally {
+    loading.value = false;
   }
 };
 const buscarPago = async () => {
+  loading.value = true;
+
   try {
     if (selectedSedeId.value) {
       const res = await usePago.getPagoID(selectedSedeId.value.value);
@@ -304,7 +360,10 @@ const buscarPago = async () => {
       console.log("hola");
       if (res && res.pagos) {
         rows.value = [res.pagos];
-        Notify.create("pagos encontrada");
+            Notify.create({
+        message: "Pago encontrada exitosamente",
+        color: "green",
+      });
       } else {
         Notify.create("No se encontró la pagos");
       }
@@ -314,28 +373,44 @@ const buscarPago = async () => {
   } catch (error) {
     console.error("Error al buscar la sede:", error);
     Notify.create("Error al buscar la sede");
+  } finally {
+    loading.value = false;
   }
 };
 
 const listarPagosActivos = async () => {
+  loading.value = true;
+
   try {
     const res = await usePago.getPagoActivos();
     console.log(res);
     rows.value = res;
-    Notify.create(" usuarios activos");
+         Notify.create({
+        message: "Pago activos exitosamente",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al listar usuarios activos:", error);
     Notify.create("Error al obtener usuarios activos");
+  } finally {
+    loading.value = false;
   }
 };
 const listarPagosInactivo = async () => {
+  loading.value = true;
+
   try {
     const res = await usePago.getPagoInactivos();
     rows.value = res;
-    Notify.create("obtener usuarios activos");
+        Notify.create({
+        message: "Pago inactivos exitosamente",
+        color: "green",
+      });
   } catch (error) {
     console.error("Error al listar usuarios activos:", error);
     Notify.create("Error al obtener usuarios activos");
+  } finally {
+    loading.value = false;
   }
 };
 let selectedOption = ref("listarTodos");
@@ -428,15 +503,14 @@ onMounted(() => {
   gap: 10px !important;
   width: 100%;
   margin-top: 20px;
-  
 }
-.select{
-width: 300px;
+.select {
+  width: 300px;
 }
-.btn >*{
-   border-radius: 30px;
+.btn > * {
+  border-radius: 30px;
 }
-.select{
+.select {
   padding: 10px;
 }
 </style>

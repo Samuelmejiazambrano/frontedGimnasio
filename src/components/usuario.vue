@@ -1,43 +1,42 @@
-<style>
-.desktop
-  #app
-  .q-layout
-  .q-page-container
-  #aaa
-  .q-pa-md
-  .q-table__container
-  .q-table__middle
-  thead
-  .q-table
-  th {
-  font-size: 25px;
-}
-</style>
-
 <template>
   <div id="aaa">
     <h2 class="title">Lista de Usuarios</h2>
 
     <div class="q-pa-md" id="rr">
       <div class="btn">
-   <q-select
-    v-model="selectedSedeId"
-    :options="options"
-    label="Seleccionar Usuario"
-    class="select"
-  />
-  <q-btn color="green" class="bb" icon="search" @click="buscarUsuario">
-    Buscar Usuario
-  </q-btn>
+        <q-select
+          v-model="selectedSedeId"
+          :options="options"
+          label="Seleccionar Usuario"
+          class="select"
+        />
 
-  <q-btn color="green" class="bb" @click="abrir(1)">Añadir Usuario</q-btn>
-     <select class="select" v-model="selectedOption" id="selectAccion" @change="seleccionarAccion">
-            <option value="listarTodos">Listar Todos los Usuarios</option>
-            <option value="listarActivos">Listar Usuarios Activos</option>
-            <option value="listarInactivos">Listar Usuarios Inactivos</option>
-          </select>
-</div>
+        <q-btn
+          color="green"
+          class="bb"
+          icon="search"
+          @click="buscarUsuario"
+          :loading="loading"
+        >
+          <q-tooltip>Buscar Usuario</q-tooltip>
+        </q-btn>
 
+        <q-btn color="green" class="bb" @click="abrir(1)" :loading="loading">
+          <q-tooltip>Añadir Usuario</q-tooltip>
+          Añadir Usuario
+        </q-btn>
+
+        <select
+          class="select"
+          v-model="selectedOption"
+          id="selectAccion"
+          @change="seleccionarAccion"
+        >
+          <option value="listarTodos">Listar Todos los Usuarios</option>
+          <option value="listarActivos">Listar Usuarios Activos</option>
+          <option value="listarInactivos">Listar Usuarios Inactivos</option>
+        </select>
+      </div>
 
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 500px">
@@ -76,7 +75,6 @@
             class="q-my-md q-mx-md"
             type="text"
           />
-
           <q-input
             outlined
             v-model="telefono"
@@ -105,22 +103,22 @@
               @click="accion === 1 ? agregarUsuario() : updateUsuario()"
               color="red"
               class="text-white"
+              :loading="loading"
             >
               {{ accion === 1 ? "Agregar" : "Editar" }}
-              <template v-slot:loading>
-                <q-spinner color="primary" size="1em" />
-              </template>
             </q-btn>
             <q-btn label="Cerrar" color="black" outline @click="cerrar" />
           </q-card-actions>
         </q-card>
       </q-dialog>
+
       <q-table
         q-table
         :table-row-class="tabla"
         :rows="rows"
         :columns="columns"
         row-key="_id"
+        :loading="loading"
       >
         <template v-slot:body-cell-estado="props">
           <q-td :props="props">
@@ -132,26 +130,36 @@
         </template>
         <template v-slot:body-cell-opciones="props">
           <q-td :props="props">
-            <q-btn @click="cargarDatosUsuario(props.row)">
+            <q-btn @click="cargarDatosUsuario(props.row)" :loading="loading">
+              <q-tooltip>Editar Usuario</q-tooltip>
               <span role="img" aria-label="Editar">✏️</span>
             </q-btn>
-            <q-btn @click="togglePlanStatus(props.row)">
+            <q-btn
+              @click="togglePlanStatus(props.row)"
+              :loading="props.row.loading"
+            >
+              <q-tooltip>{{
+                props.row.estado == 1 ? "Desactivar Usuario" : "Activar Usuario"
+              }}</q-tooltip>
               <span role="img" aria-label="Toggle">
                 {{ props.row.estado == 1 ? "❌" : "✅" }}
               </span>
+              <template v-slot:loading>
+                <q-spinner color="primary" size="1em" />
+              </template>
             </q-btn>
           </q-td>
         </template>
       </q-table>
-      <!-- </q-table> -->
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted } from "vue";
 import { Notify } from "quasar";
 import { useUsuarioStore } from "../stores/usuario.js";
-
+let loading = ref(false);
 let nombre = ref("");
 let sede = ref("");
 let email = ref("");
@@ -169,6 +177,7 @@ let token = ref("");
 let password = ref("");
 let accion = ref(1);
 let currentId = ref(null);
+
 let useUsuario = useUsuarioStore();
 
 let rows = ref([]);
@@ -201,15 +210,23 @@ const seleccionarAccion = async () => {
   }
 };
 let listarIngesos = async () => {
-  r = await useUsuario.getUsuario();
+    loading.value = true;
 
-  rows.value = r.usuario;
+  try {
+    r = await useUsuario.getUsuario();
 
-  options.value = r.usuario.map((usuarios) => ({
-    label: usuarios.nombre,
-    value: usuarios._id,
-  }));
-  console.log(r);
+    rows.value = r.usuario;
+
+    options.value = r.usuario.map((usuarios) => ({
+      label: usuarios.nombre,
+      value: usuarios._id,
+    }));
+    console.log(r);
+  } catch {
+    console.log("error");
+  } finally {
+    loading.value = false;
+  }
 };
 let alert = ref(false);
 // function cerrardiv() {
@@ -226,13 +243,13 @@ function cerrar() {
   alert.value = false;
 }
 const agregarUsuario = async () => {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const namePattern = /^[A-Za-z\s]+$/;
-  if(!namePattern.test( nombre.value))  {
+  if (!namePattern.test(nombre.value)) {
     Notify.create("por favor ingrese su nombre ");
   } else if (sede.value == "") {
     Notify.create("por favor ingrese la Sede");
-  } else if (emailPattern.test(email.value)==false) {
+  } else if (emailPattern.test(email.value) == false) {
     Notify.create("por favor ingrese el Email");
   } else if (direccion.value == "") {
     Notify.create("por favor ingrese la direccion");
@@ -253,7 +270,7 @@ const agregarUsuario = async () => {
         rol: rol.value.value,
         password: password.value,
       });
-   Notify.create({
+      Notify.create({
         message: "Usuario agregado correctamente",
         color: "green",
       });
@@ -265,36 +282,42 @@ const agregarUsuario = async () => {
   }
 };
 const listarUsuariosActivos = async () => {
+  loading.value = true;
   try {
     const res = await useUsuario.getUsuarioActivos();
     rows.value = res.usuarios;
-     Notify.create({
-        message: "usuarios activos",
-        color: "green",
-      });
+    Notify.create({
+      message: "usuarios activos",
+      color: "green",
+    });
   } catch (error) {
     console.error("Error al listar usuarios activos:", error);
     Notify.create("Error al obtener usuarios activos");
+  } finally {
+    loading.value = false;
   }
 };
 const listarUsuariosInactivo = async () => {
+  loading.value = true;
   try {
     const res = await useUsuario.getUsuarioInactivos();
     rows.value = res.usuarios;
-      Notify.create({
-        message: "usuarios inactivos",
-        color: "green",
-      });
+    Notify.create({
+      message: "usuarios inactivos",
+      color: "green",
+    });
   } catch (error) {
     console.error("Error al listar usuarios activos:", error);
     Notify.create("Error al obtener usuarios activos");
+  } finally {
+    loading.value = false;
   }
 };
 const desactivarUsuario = async (usuario) => {
   try {
     if (usuario && usuario._id) {
       await useUsuario.desactivarUsuarios(usuario);
-        Notify.create({
+      Notify.create({
         message: "Usuario desactivado correctamente",
         color: "green",
       });
@@ -311,7 +334,7 @@ const activarUsuario = async (usuario) => {
   try {
     if (usuario && usuario._id) {
       await useUsuario.activarUsuarios(usuario);
-         Notify.create({
+      Notify.create({
         message: "Usuario activado correctamente",
         color: "green",
       });
@@ -381,16 +404,16 @@ const togglePlanStatus = async (usuario) => {
   }
 };
 const buscarUsuario = async () => {
+loading.value=true
   try {
     if (selectedSedeId.value) {
       const res = await useUsuario.getusuarioID(selectedSedeId.value.value);
       if (res && res.usuario) {
         rows.value = [res.usuario];
-           Notify.create({
-        message: "Usuario encontrado correctamente",
-        color: "green",
-      });
-        
+        Notify.create({
+          message: "Usuario encontrado correctamente",
+          color: "green",
+        });
       } else {
         Notify.create("No se encontró la sede");
       }
@@ -400,6 +423,8 @@ const buscarUsuario = async () => {
   } catch (error) {
     console.error("Error al buscar la sede:", error);
     Notify.create("Error al buscar la sede");
+  }finally{
+  loading.value=false
   }
 };
 onMounted(() => {
@@ -452,7 +477,6 @@ onMounted(() => {
 }
 /* Estilos para los botones */
 
-
 /* Alineación vertical de los botones en su contenedor */
 
 /* Estilo específico para los botones de acción */
@@ -484,11 +508,14 @@ onMounted(() => {
 }
 
 /* Estilo para el icono desplegable del select */
-.q-select .q-field__native .q-field__bottom-right .q-field__append .q-select__dropdown-icon {
+.q-select
+  .q-field__native
+  .q-field__bottom-right
+  .q-field__append
+  .q-select__dropdown-icon {
   font-size: 20px; /* Tamaño del icono */
 }
-.btn >*{
-   border-radius: 30px;
+.btn > * {
+  border-radius: 30px;
 }
-
 </style>

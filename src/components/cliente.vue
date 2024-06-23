@@ -24,6 +24,7 @@ let columns = ref([
     align: "center",
     field: "fechaNac",
   },
+
   {
     name: "fechaIngreso",
     label: "Fecha de Ingreso",
@@ -31,8 +32,15 @@ let columns = ref([
     field: "fechaIngreso",
   },
   { name: "nombrePlan", label: "Plan", align: "center", field: "nombrePlan" },
+  {
+    name: "estado",
+    label: "Estado",
+    align: "center",
+    field: "estado",
+  },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
+let loading = ref(false);
 
 let accion = ref(1);
 let cc = ref("");
@@ -108,6 +116,7 @@ function cargarDatosIngresos(cliente) {
 }
 
 const editarCliente = async () => {
+  loading.value = true;
   try {
     await useCliente.actualizarCliente({
       _id: currentId.value,
@@ -124,6 +133,8 @@ const editarCliente = async () => {
     listarCliente();
   } catch (error) {
     console.error("Error al editar cliente:", error);
+  } finally {
+    loading.value = false;
   }
 };
 function cerrarSeguimiento() {
@@ -138,6 +149,7 @@ function cerrarSeguimiento() {
 }
 
 async function listarCliente() {
+  loading.value = true;
   try {
     let response = await useCliente.getCliente();
     rows.value = response.cliente;
@@ -156,9 +168,13 @@ async function listarCliente() {
     clientes.value = response.cliente;
   } catch (error) {
     console.error("Error al listar clientes:", error);
+  } finally {
+    loading.value = false;
   }
 }
 const buscarCliente = async () => {
+  loading.value = true;
+
   try {
     const response = await useCliente.getClienteID(
       selectedClientId.value.value
@@ -176,37 +192,52 @@ const buscarCliente = async () => {
   } catch (error) {
     console.error("Error al buscar cliente por ID:", error);
     Notify.create("Error al buscar cliente por ID");
+  } finally {
+    loading.value = false;
   }
 };
 
 async function listarClientesPorPlan() {
-  if (selectedPlan.value) {
-    console.log("Selected Plan ID: ", selectedPlan.value);
-    r = await useCliente.getClientesPorPlan(selectedPlan.value.value);
-    rows.value = r.map((cliente) => {
-      let plan = plane.value.find((p) => p._id === cliente.plan);
-      return {
-        ...cliente,
-        nombrePlan: plan ? plan.descripcion : "N/A",
-      };
-    });
-    console.log(selectedPlan);
-  } else {
-    console.error("Plan no seleccionado.");
+  loading.value = true;
+  try {
+    if (selectedPlan.value) {
+      console.log("Selected Plan ID: ", selectedPlan.value);
+      r = await useCliente.getClientesPorPlan(selectedPlan.value.value);
+      rows.value = r.map((cliente) => {
+        let plan = plane.value.find((p) => p._id === cliente.plan);
+        return {
+          ...cliente,
+          nombrePlan: plan ? plan.descripcion : "N/A",
+        };
+      });
+      console.log(selectedPlan);
+    } else {
+      console.error("Plan no seleccionado.");
+    }
+  } catch {
+    console.log("error");
+  } finally {
+    loading.value = false;
   }
 }
 
 async function listarPlanes() {
+  loading.value = true;
+
   try {
     let res = await useCliente.getPlan();
     plane.value = res.planes;
     console.log(res);
   } catch (error) {
     console.error("Error al listar planes:", error);
+  } finally {
+    loading.value = false;
   }
 }
 
 async function agregarCliente() {
+  loading.value = true;
+
   const namePattern = /^[A-Za-z\s]+$/;
   if (!/^\d{8,}$/.test(cc.value)) {
     Notify.create("por favor ingrese la cc");
@@ -242,6 +273,8 @@ async function agregarCliente() {
       listarCliente();
     } catch (error) {
       console.error("Error al agregar cliente:", error);
+    } finally {
+      loading.value = false;
     }
   }
 }
@@ -277,10 +310,9 @@ const handleFileUpload = (event) => {
       const ctx = canvas.getContext("2d");
       ctx.drawImage(image, 0, 0, width, height);
 
-      // Convierte la imagen del canvas a base64 y asigna a foto.value
-      foto.value = canvas.toDataURL("image/jpeg", 0.7); // Calidad JPEG ajustable (0.7 es 70% de calidad)
+      foto.value = canvas.toDataURL("image/jpeg", 0.7);
 
-      console.log(foto.value); // Verifica en la consola que la URL de la imagen se imprime correctamente
+      console.log(foto.value);
     };
     image.src = reader.result;
   };
@@ -289,6 +321,8 @@ const handleFileUpload = (event) => {
 };
 
 async function agregarSeguimiento() {
+  loading.value = true;
+
   try {
     let seguimientoData = {
       fechaIngreso: new Date(),
@@ -300,16 +334,19 @@ async function agregarSeguimiento() {
       estatura: estatura.value,
     };
 
-    // Llama a postSeguimiento pasando el ID del cliente
     await useCliente.postSeguimiento(currentId.value, seguimientoData);
     cerrarSeguimiento();
     listarCliente();
   } catch (error) {
     console.error("Error al agregar seguimiento:", error);
+  } finally {
+    loading.value = true;
   }
 }
 
 const desactivarCliente = async (cliente) => {
+  loading.value = true;
+
   try {
     if (cliente && cliente._id) {
       await useCliente.desactivarCliente(cliente);
@@ -321,10 +358,14 @@ const desactivarCliente = async (cliente) => {
   } catch (error) {
     console.error("Error al desactivar cliente:", error);
     Notify.create("Error al desactivar cliente");
+  } finally {
+    loading.value = false;
   }
 };
 
 const activarCliente = async (cliente) => {
+  loading.value = true;
+
   try {
     if (cliente && cliente._id) {
       await useCliente.activarCliente(cliente);
@@ -336,6 +377,8 @@ const activarCliente = async (cliente) => {
   } catch (error) {
     console.error("Error al activar Cliente:", error);
     Notify.create("Error al activar Cliente");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -349,7 +392,7 @@ function mostrarSeguimiento(cliente) {
   seguimientoData.value = cliente;
   console.log(seguimientoData);
   currentId.value = cliente._id;
-  seguimientoDialog.value = true; 
+  seguimientoDialog.value = true;
 }
 
 const togglePlanStatus = async (cliente) => {
@@ -365,6 +408,8 @@ const togglePlanStatus = async (cliente) => {
   }
 };
 async function actualizarSeguimientos() {
+  loading.value = true;
+
   try {
     let seguimientoData = {
       peso: peso.value,
@@ -387,6 +432,8 @@ async function actualizarSeguimientos() {
     listarCliente();
   } catch (error) {
     console.error("Error al actualizar seguimiento:", error);
+  } finally {
+    loading.value = false;
   }
 }
 function calcularCategoriaIMC(imc) {
@@ -470,7 +517,12 @@ onMounted(async () => {
           class="q-my-md q-mx-md"
           type="text"
         />
-        <input class="input-img" type="file" ref="fileInput" @change="handleFileUpload" />
+        <input
+          class="input-img"
+          type="file"
+          ref="fileInput"
+          @change="handleFileUpload"
+        />
 
         <q-input
           outlined
@@ -492,49 +544,57 @@ onMounted(async () => {
       </q-card>
     </q-dialog>
 
+   
     <div class="search">
-      <div class="select">
-        <q-select
-          v-model="selectedClientId"
-          :options="
-            clientes.map((cliente) => ({
-              label: cliente.nombre,
-              value: cliente._id,
-            }))
-          "
-          label="Seleccionar Cliente"
-        />
-        <q-btn @click="buscarCliente" color="primary" label="Buscar" />
-      </div>
+      <q-select
+        v-model="selectedClientId"
+        :options="
+          clientes.map((cliente) => ({
+            label: `${cliente.nombre} - ${cliente.cc}`,
+            value: cliente._id,
+          }))
+        "
+        label="Seleccionar Cliente"
+        class="q-mr-md select"
+      />
+      <q-btn @click="buscarCliente" color="primary"           icon="search"
+ class="q-mr-md" />
 
-      <div class="select">
-        <q-select
-          v-model="selectedPlan"
-          :options="
-            plane.map((planes) => ({
-              label: planes.descripcion,
-              value: planes._id,
-            }))
-          "
-          label="Seleccionar Plan"
-        />
-        <q-btn @click="listarClientesPorPlan" color="primary" label="Buscar" />
-      </div>
-      <div class="select">
-        <q-btn color="green" class="sam" @click="abrir(1)"
-          >Añadir Cliente</q-btn
-        >
-      </div>
+      <q-select
+        v-model="selectedPlan"
+        :options="
+          plane.map((planes) => ({
+            label: planes.descripcion,
+            value: planes._id,
+          }))
+        "
+        label="Seleccionar Plan"
+                class="q-mr-md select"
+
+      />
+      <q-btn @click="listarClientesPorPlan" color="primary"           icon="search"
+ class="q-mr-md" />
+
+      <q-btn color="green" class="sam" @click="abrir(1)">Añadir Cliente</q-btn>
     </div>
 
     <div class="q-pa-md" id="tt">
       <q-table
-        title="Sedes"
+        title="Inventario"
         :rows="rows"
         :columns="columns"
         row-key="name"
         class="custom-table-header"
+        :loading="loading"
       >
+        <template v-slot:body-cell-estado="props">
+          <q-td :props="props">
+            <div class="q-pa-md q-gutter-sm"></div>
+            <p :style="{ color: props.row.estado === 1 ? 'green' : 'red' }">
+              {{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
+            </p>
+          </q-td>
+        </template>
         <template v-slot:body-cell-fechaNac="props">
           <q-td :props="props">
             {{ moment(props.row.fechaNac).format("dddd, D MMMM YYYY") }}
@@ -611,52 +671,110 @@ onMounted(async () => {
                   </q-card-actions>
                 </q-card>
               </q-dialog>
-              
-              
-               <q-dialog v-model="seguimientoDialog" class="seguimiento" persistent>
-      <q-card class="">
-        <q-card-section style="background-color: #344860; margin-bottom: 20px" class="s">
-          <div class="text-h5 text-white text-center nombre">Seguimientos del Cliente:{{ seguimientoData.nombre }}</div>
-          
-          <img v-if="seguimientoData.foto" :src="seguimientoData.foto" alt="Foto de cliente"
-            style="max-width: 40%; max-height:120px; object-fit: cover; border-radius: 8px;">
-        </q-card-section>
 
-        <q-card-section class="listaSeguimiento">
-          <q-card v-for="seguimiento in seguimientoData.seguimiento" :key="seguimiento.fechaIngreso">
-            <q-card-section>
-              <div>Fecha de ingreso: {{ moment(seguimiento.fechaIngreso).format("dddd, D MMMM YYYY") }}</div>
-              <div>Peso: {{ seguimiento.peso }}</div>
-              <div>IMC: {{ seguimiento.imc }} ({{ calcularCategoriaIMC(seguimiento.imc) }})</div>
-              <div>Brazo: {{ seguimiento.brazo }}</div>
-              <div>Cintura: {{ seguimiento.cintura }}</div>
-              <div>Pie: {{ seguimiento.pie }}</div>
-              <div>Estatura: {{ seguimiento.estatura }}</div>
-              <q-btn @click="mostrarSeguimientos(seguimiento, seguimientoData)"
-                class="editar">Editar</q-btn>
-            </q-card-section>
-          </q-card>
-        </q-card-section>
+              <q-dialog
+                v-model="seguimientoDialog"
+                class="seguimiento"
+                persistent
+              >
+                <q-card class="">
+                  <q-card-section
+                    style="background-color: #344860; margin-bottom: 20px"
+                    class="s"
+                  >
+                    <div class="text-h5 text-white text-center nombre">
+                      Seguimientos del Cliente:{{ seguimientoData.nombre }}
+                    </div>
 
-        <q-card-actions align="center">
-          <q-btn color="black" outline @click="cerrarSeguimiento()">Cerrar</q-btn>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+                    <img
+                      v-if="seguimientoData.foto"
+                      :src="seguimientoData.foto"
+                      alt="Foto de cliente"
+                      style="
+                        max-width: 40%;
+                        max-height: 120px;
+                        object-fit: cover;
+                        border-radius: 8px;
+                      "
+                    />
+                  </q-card-section>
+
+                  <q-card-section class="listaSeguimiento">
+                    <q-card
+                      v-for="seguimiento in seguimientoData.seguimiento"
+                      :key="seguimiento.fechaIngreso"
+                    >
+                      <q-card-section>
+                        <div>
+                          Fecha de ingreso:
+                          {{
+                            moment(seguimiento.fechaIngreso).format(
+                              "dddd, D MMMM YYYY"
+                            )
+                          }}
+                        </div>
+                        <div>Peso: {{ seguimiento.peso }}</div>
+                        <div>
+                          IMC: {{ seguimiento.imc }}
+                          <p
+                            class="imc"
+                            :style="{
+                              backgroundColor:
+                                seguimiento.imc < 18.5
+                                  ? 'blue'
+                                  : seguimiento.imc < 25
+                                  ? 'green'
+                                  : seguimiento.imc < 30
+                                  ? 'yellow'
+                                  : 'red',
+                              color: 'white',
+                            }"
+                          >
+                            {{ calcularCategoriaIMC(seguimiento.imc) }}
+                          </p>
+                        </div>
+                        <div>Brazo: {{ seguimiento.brazo }}</div>
+                        <div>Cintura: {{ seguimiento.cintura }}</div>
+                        <div>Pie: {{ seguimiento.pie }}</div>
+                        <div>Estatura: {{ seguimiento.estatura }}</div>
+                        <q-btn
+                          @click="
+                            mostrarSeguimientos(seguimiento, seguimientoData)
+                          "
+                          class="editar"
+                          >Editar</q-btn
+                        >
+                      </q-card-section>
+                    </q-card>
+                  </q-card-section>
+
+                  <q-card-actions align="center">
+                    <q-btn color="black" outline @click="cerrarSeguimiento()"
+                      >Cerrar</q-btn
+                    >
+                  </q-card-actions>
+                </q-card>
+              </q-dialog>
 
               <span role="img" aria-label="Toggle">
                 {{ props.row.estado == 1 ? "❌" : "✅" }}
               </span>
+              <q-tooltip>{{
+                props.row.estado == 1 ? "Desactivar Cliente" : "Activar Cliente"
+              }}</q-tooltip>
             </q-btn>
             <q-btn class="sam" @click="abrirSeguimiento(props.row)">
               <q-icon name="add_circle" />
+              <q-tooltip>Seguimiento</q-tooltip>
             </q-btn>
             <q-btn @click="mostrarSeguimiento(props.row)">
               <q-icon name="visibility" />
+              <q-tooltip>mostrar Seguimiento</q-tooltip>
             </q-btn>
 
             <q-btn @click="cargarDatosIngresos(props.row)">
               <span role="img" aria-label="Editar">✏️</span>
+              <q-tooltip>Editar </q-tooltip>
             </q-btn>
           </q-td>
         </template>
@@ -711,15 +829,17 @@ onMounted(async () => {
   width: 180vh;
 }
 
-
-
 .listaSeguimiento {
   display: grid;
-  grid-template-columns: repeat( 2,1fr); /* Cambiado para una tarjeta por fila */
+  grid-template-columns: repeat(
+    2,
+    1fr
+  ); /* Cambiado para una tarjeta por fila */
   gap: 30px;
   padding: 20px;
   font-size: 16px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
 .listaSeguimiento q-card {
@@ -746,47 +866,75 @@ onMounted(async () => {
   margin-bottom: 10px; /* Ajuste para el margen inferior */
 }
 
-.search {
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-end;
-  width: 100%;
-  padding: 30px;
-}
 
-.search > * {
-  width: 20%;
+
+
+.imc {
+  padding: 5px;
+  width: 100px;
+  border-radius: 3px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .select > * {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 60%;
-  flex-direction: column;
 }
-.s{
-display: flex;
-width: 100%;
+.s {
+  display: flex;
+  width: 100%;
 }
-.s img{
- margin-left: 100px;
- 
+.s img {
+  margin-left: 100px;
 }
 .editar {
   background: #b5bbc2;
 }
-.nombre{
-margin-top: 30px;
-width: 300px;
+.nombre {
+  margin-top: 30px;
+  width: 300px;
 }
-.input-img{
-
- width: 100vh;
- height: 10px;
- padding: 20px;
+.input-img {
+  width: 100vh;
+  height: 10px;
+  padding: 20px;
 }
-.input-img input{
+.input-img input {
+  padding: 20px;
+}
+.title {
+  font-size: 2.1rem;
+  font-family: "Roboto", sans-serif;
+  border-bottom: 3px solid #344860;
+  padding-top: 20px;
+  font-weight: 900;
+}
 
- padding: 20px;
+.custom-table-header .q-table-header {
+  background-color: #344860;
+  color: white;
+}
+
+.rounded-borders .q-table-container .q-table {
+  border-radius: 8px;
+}
+
+.search {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  width: 100%;
+  padding: 20px 30px;
+}
+.select{
+width: 250px;
+}
+/*  */
+
+.sam {
+  min-width: 150px; /* Ancho mínimo para el botón de añadir cliente */
 }
 </style>
