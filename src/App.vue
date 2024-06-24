@@ -1,4 +1,4 @@
-<template>
+\<template>
   <q-layout view="hhh LpR fFf">
     <q-header
       v-if="!$route.meta.hideNavbar"
@@ -25,7 +25,7 @@
           <img src="./components/img/69966.png" />
         </q-avatar>
 
-          <q-btn
+        <q-btn
           dense
           flat
           round
@@ -37,39 +37,49 @@
           <q-icon name="exit_to_app" />
           <span class="logout-text">Cerrar sesión</span>
         </q-btn>
+
         <router-link class="link" to="/home">
-          <q-icon name="shopping_cart" /> Home
+          <q-icon name="home" /> Home
         </router-link>
-        <router-link class="link" to="/compras">
-          <q-icon name="shopping_cart" /> Plan
-        </router-link>
-        <router-link class="link" to="/ventas">
-          <q-icon name="monetization_on" /> Inventario
-        </router-link>
-        <router-link class="link" to="/productos">
-          <q-icon name="store" /> Sedes
-        </router-link>
-        <router-link class="link" to="/maquinaria">
-          <q-icon name="build" /> Maquinaria
-        </router-link>
-        <router-link class="link" to="/usuario">
-          <q-icon name="assignment" /> Usuario
-        </router-link>
-        <router-link class="link" to="/mantenimiento">
-          <q-icon name="settings" /> Mantenimiento
-        </router-link>
-        <router-link class="link" to="/cliente">
-          <q-icon name="people" /> Clientes
-        </router-link>
-        <router-link class="link" to="/venta">
-          <q-icon name="people" /> Ventas
-        </router-link>
-        <router-link class="link" to="/ingresos">
-          <q-icon name="people" /> Ingresos
-        </router-link>
-        <router-link class="link" to="/pagos">
-          <q-icon name="people" /> Pagos
-        </router-link>
+        
+        <template v-if="userRole === 'admin' || userRole === 'instructor'">
+          <router-link class="link" to="/compras">
+            <q-icon name="shopping_cart" /> Plan
+          </router-link>
+          <router-link class="link" to="/ventas">
+            <q-icon name="monetization_on" /> Inventario
+          </router-link>
+          <router-link class="link" to="/productos">
+            <q-icon name="store" /> Sedes
+          </router-link>
+          <router-link class="link" to="/venta">
+            <q-icon name="people" /> Ventas
+          </router-link>
+        </template>
+
+        <template v-if="userRole === 'admin' || userRole === 'recepcionista'">
+          <router-link class="link" to="/cliente">
+            <q-icon name="people" /> Clientes
+          </router-link>
+          <router-link class="link" to="/mantenimiento">
+            <q-icon name="settings" /> Mantenimiento
+          </router-link>
+          <router-link class="link" to="/usuario">
+            <q-icon name="assignment" /> Usuario
+          </router-link>
+          <router-link class="link" to="/ingresos">
+            <q-icon name="people" /> Ingresos
+          </router-link>
+          <router-link class="link" to="/pagos">
+            <q-icon name="people" /> Pagos
+          </router-link>
+        </template>
+
+        <template v-if="userRole === 'admin'">
+          <router-link class="link" to="/maquinaria">
+            <q-icon name="build" /> Maquinaria
+          </router-link>
+        </template>
       </div>
     </q-drawer>
 
@@ -80,13 +90,15 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useUsuarioStore } from "./stores/usuario.js";
 
 const leftDrawerOpen = ref(false);
 const useUsuario = useUsuarioStore();
 const router = useRouter();
+
+const userRole = computed(() => useUsuario.usuario.rol);
 
 const logout = () => {
   useUsuario.clearSession();
@@ -117,9 +129,9 @@ const toggleLeftDrawer = () => {
   text-decoration: none;
   font-size: 18px;
   font-weight: bold;
-  
 }
-.logout  {
+
+.logout {
   display: flex;
   align-items: center;
   color: #fff;
@@ -127,8 +139,6 @@ const toggleLeftDrawer = () => {
   font-size: 18px;
   font-weight: bold;
   margin-right: 40px;
-  
-
 }
 
 .link q-icon {
@@ -142,7 +152,4 @@ const toggleLeftDrawer = () => {
 .link:hover q-icon {
   color: #ffeb3b; /* Cambia el color del icono al pasar el ratón */
 }
-
-
-
 </style>

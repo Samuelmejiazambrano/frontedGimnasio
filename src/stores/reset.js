@@ -18,7 +18,6 @@ export const useResetStore = defineStore("reset", () => {
     } catch (error) {
 
       throw error;
-      console.log(email);
 
     } finally {
       cargando.value = false;

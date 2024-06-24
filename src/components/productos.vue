@@ -44,7 +44,7 @@
               style="background-color: #344860; margin-bottom: 20px"
             >
               <div class="text-h6 text-white">
-                {{ accion == 1 ? "Agregar Instructor" : "Editar Instructor" }}
+                {{ accion == 1 ? "Agregar Sedes" : "Editar Sedes" }}
               </div>
             </q-card-section>
             <q-input

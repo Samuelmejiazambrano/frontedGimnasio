@@ -63,7 +63,6 @@
               }}</q-tooltip>
             </q-btn>
             <q-btn label="Cerrar" color="black" outline @click="cerrar">
-              Cerrar
               <q-tooltip>Cerrar el diálogo</q-tooltip>
             </q-btn>
           </q-card-actions>

@@ -24,7 +24,7 @@
             style="background-color: #344860; margin-bottom: 20px"
           >
             <div class="text-h6 text-white">
-              {{ accion == 1 ? "Agregar Instructor" : "Editar Instructor" }}
+              {{ accion == 1 ? "Agregar Ingresos" : "Editar Ingresos" }}
             </div>
           </q-card-section>
           <q-input
@@ -71,7 +71,7 @@
             </q-btn>
             <q-btn label="Cerrar" color="black" outline @click="cerrar">
               <q-tooltip>Cerrar</q-tooltip>
-              Cerrar
+              
             </q-btn>
           </q-card-actions>
         </q-card>

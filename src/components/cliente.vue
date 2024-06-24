@@ -111,8 +111,8 @@ function cargarDatosIngresos(cliente) {
   direccion.value = cliente.direccion;
   telefono.value = cliente.telefono;
   foto.value = cliente.foto;
-  plan.value = cliente.plan;
-  abrir(2); // Esto abre el formulario de edición
+  plan.value = cliente.nombrePlan;
+  abrir(2); 
 }
 
 const editarCliente = async () => {
@@ -203,6 +203,7 @@ async function listarClientesPorPlan() {
     if (selectedPlan.value) {
       console.log("Selected Plan ID: ", selectedPlan.value);
       r = await useCliente.getClientesPorPlan(selectedPlan.value.value);
+      console.log(r);
       rows.value = r.map((cliente) => {
         let plan = plane.value.find((p) => p._id === cliente.plan);
         return {
@@ -210,8 +211,10 @@ async function listarClientesPorPlan() {
           nombrePlan: plan ? plan.descripcion : "N/A",
         };
       });
-      console.log(selectedPlan);
+      console.log(selectedPlan.value);
     } else {
+      console.log(r);
+
       console.error("Plan no seleccionado.");
     }
   } catch {
@@ -237,7 +240,9 @@ async function listarPlanes() {
 
 async function agregarCliente() {
   loading.value = true;
-
+  const idPlanSeleccionado = plan.value
+    ? plan.value.value
+    : null;
   const namePattern = /^[A-Za-z\s]+$/;
   if (!/^\d{8,}$/.test(cc.value)) {
     Notify.create("por favor ingrese la cc");
@@ -256,6 +261,8 @@ async function agregarCliente() {
     Notify.create("por favor ingrese la foto ");
   } else if (plan.value == "") {
     Notify.create("por favor ingrese el plan ");
+    
+    console.log(idPlanSeleccionado);
   } else {
     try {
       let response = await useCliente.postCliente({
@@ -266,7 +273,7 @@ async function agregarCliente() {
         direccion: direccion.value,
         telefono: telefono.value,
         foto: foto.value, // Ensure foto is included here
-        plan: plan.value,
+        plan: idPlanSeleccionado,
       });
 
       cerrar();
@@ -524,13 +531,19 @@ onMounted(async () => {
           @change="handleFileUpload"
         />
 
-        <q-input
-          outlined
-          v-model="plan"
-          label="plan"
-          class="q-my-md q-mx-md"
-          type="text"
-        />
+     <q-select
+         
+        v-model="plan"
+        :options="
+          plane.map((planes) => ({
+            label: planes.descripcion,
+            value: planes._id,
+          }))
+        "
+        label="Seleccionar Plan"
+                class="q-mr-md plan"
+
+      />
         <q-card-actions align="right">
           <q-btn
             @click="accion === 1 ? agregarCliente() : editarCliente()"
@@ -580,7 +593,7 @@ onMounted(async () => {
 
     <div class="q-pa-md" id="tt">
       <q-table
-        title="Inventario"
+        title="Cliente"
         :rows="rows"
         :columns="columns"
         row-key="name"
@@ -931,10 +944,17 @@ onMounted(async () => {
 }
 .select{
 width: 250px;
+
 }
 /*  */
 
 .sam {
   min-width: 150px; /* Ancho mínimo para el botón de añadir cliente */
+}
+.plan{
+  margin-left: 20px;
+}
+.search > * {
+  border-radius: 30px;
 }
 </style>
