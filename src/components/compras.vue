@@ -89,7 +89,7 @@
               <q-tooltip>{{ accion === 1 ? "Agregar Plan" : "Editar Plan" }}</q-tooltip>
             </q-btn>
             <q-btn label="Cerrar" color="black" outline @click="cerrar" :disable="loading">
-              Cerrar
+              
               <q-tooltip>Cerrar</q-tooltip>
             </q-btn>
           </q-card-actions>
@@ -165,7 +165,12 @@ let columns = ref([
 
 let loading = ref(false); // Variable para controlar el estado de carga
 let selectedOption = ref("listarTodos");
-
+const trimInputValues = () => {
+  descripcion.value = descripcion.value.trim();
+  codigo.value = codigo.value.toString().trim();
+  valor.value = valor.value.toString().trim();
+  CantDias.value = CantDias.value.toString().trim();
+};
 const seleccionarAccion = async () => {
   loading.value = true;
   try {
@@ -260,6 +265,7 @@ const cargarDatosUsuario = (usuario) => {
 
 const updatePlanes = async () => {
   loading.value = true;
+  trimInputValues()
   try {
     await usePlan.UpdatePlan({
       _id: currentId.value,
@@ -297,8 +303,44 @@ let valor = ref(0);
 let currentId = ref(null);
 let selectedClientId = ref(null);
 
+// async function agregarPlan() {
+//   loading.value = true;
+//   trimInputValues()
+//   try {
+//     const val = (/\B(?=(\d{3})+(?!\d))/g, ".");
+//     if (CantDias.value == "") {
+//       Notify.create("Por favor ingrese la cantidad de días");
+//     } else if (descripcion.value == "") {
+//       Notify.create("Por favor ingrese la descripción");
+//     } else if (codigo.value.length <= 3) {
+//       Notify.create("Por favor ingrese el código");
+//     } else {
+//       await usePlan.agregarPlan({
+//         descripcion: descripcion.value,
+//         codigo: codigo.value,
+//         valor: valor.value,
+//         CantDias: CantDias.value,
+//       });
+//       cerrar();
+//       await listarIngesos();
+//       Notify.create({
+//         message: "Plan añadido correctamente",
+//         color: "green",
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error al agregar plan:", error);
+//     Notify.create({
+//       message: "Error al añadir plan",
+//       color: "red",
+//     });
+//   } finally {
+//     loading.value = false;
+//   }
+// }
 async function agregarPlan() {
   loading.value = true;
+  trimInputValues();
   try {
     const val = (/\B(?=(\d{3})+(?!\d))/g, ".");
     if (CantDias.value == "") {
@@ -323,10 +365,17 @@ async function agregarPlan() {
     }
   } catch (error) {
     console.error("Error al agregar plan:", error);
-    Notify.create({
-      message: "Error al añadir plan",
-      color: "red",
-    });
+    if (error.response && error.response.data && error.response.data.errors) {
+      Notify.create({
+        message: error.response.data.errors[0].msg,
+        color: "red",
+      });
+    } else {
+      Notify.create({
+        message: "Error al añadir plan",
+        color: "red",
+      });
+    }
   } finally {
     loading.value = false;
   }

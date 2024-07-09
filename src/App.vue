@@ -1,4 +1,4 @@
-\<template>
+<template>
   <q-layout view="hhh LpR fFf">
     <q-header
       v-if="!$route.meta.hideNavbar"
@@ -24,6 +24,11 @@
         <q-avatar size="85px" color="white" style="margin-left: 35px">
           <img src="./components/img/69966.png" />
         </q-avatar>
+        
+        <!-- Mostrar el nombre del usuario -->
+        <div class="user-name" style="margin-left: 35px; color: white; font-size: 20px; margin-top: 10px;">
+          {{ userName }}
+        </div>
 
         <q-btn
           dense
@@ -89,6 +94,7 @@
   </q-layout>
 </template>
 
+
 <script setup>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
@@ -99,6 +105,7 @@ const useUsuario = useUsuarioStore();
 const router = useRouter();
 
 const userRole = computed(() => useUsuario.usuario.rol);
+const userName = computed(() => useUsuario.usuario.nombre); // Nueva variable computada para el nombre del usuario
 
 const logout = () => {
   useUsuario.clearSession();
@@ -109,6 +116,7 @@ const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 };
 </script>
+
 
 <style scoped>
 .bg-custom-primary {

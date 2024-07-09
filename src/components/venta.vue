@@ -10,9 +10,36 @@
           :options="options"
           label="Seleccionar Producto"
         />
-        <q-btn color="green" icon="search" @click="buscarVenta">
+            <q-btn color="green" icon="search" @click="buscarVenta">
           <q-tooltip>Buscar las ventas de la sede seleccionada</q-tooltip>
         </q-btn>
+           <q-input v-model="fechaInicio" label="Fecha de Inicio" outlined class="fecha">
+          <template v-slot:append>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                <q-date v-model="fechaInicio" mask="YYYY-MM-DD" />
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+
+        <q-input v-model="fechaFin" label="Fecha de Fin" outlined class="fecha">
+          <template v-slot:append>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                <q-date v-model="fechaFin" mask="YYYY-MM-DD" />
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+
+        <!-- Botón para buscar entre fechas -->
+          <q-btn color="green" icon="search" @click="buscarVentasEntreFechas">
+            <q-tooltip
+              >Buscar las ventas en el rango de fechas seleccionado</q-tooltip
+            >
+          </q-btn>
+    
         <q-btn color="green" @click="abrir(1)">
           Añadir Venta
           <q-tooltip>Añadir un nuevo producto a la lista de ventas</q-tooltip>
@@ -43,9 +70,7 @@
             class="q-my-md q-mx-md"
             type="number"
           />
-       
-       
-       
+
           <q-card-actions align="right">
             <q-btn
               @click="accion === 1 ? agregarVentas() : editarVenta()"
@@ -151,34 +176,51 @@ let inventarioOptions = ref([]);
 let columns = ref([
   {
     name: "codigoProducto",
-    label: "Código",
+    label: "Producto",
     align: "center",
     field: (row) => row.codigoProducto.descripcion,
   },
   { name: "cantidad", label: "Cantidad", align: "center", field: "cantidad" },
-  
+
   {
     name: "totalVentas",
     label: "Total Ventas",
     align: "center",
     field: "totalVentas",
   },
-  {
-    name: "fechaInicio",
-    label: "Fecha de Inicio",
-    align: "center",
-    field: "fechaInicio",
-  },
-  {
-    name: "fechaFin",
-    label: "Fecha de Fin",
-    align: "center",
-    field: "fechaFin",
-  },
+
   { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
+const obtenerTotalVentasEntreFechas = async (fechaInicio, fechaFin) => {
+  try {
+  
+    const response = await useVenta.getTotalVentasEntreFechas( fechaInicio, fechaFin );
+    console.log("Total de ventas:", response.ventas);
+        rows.value = response.ventas;
 
+  } catch (error) {
+    console.error("Error al obtener el total de ventas:", error);
+  }
+}
+
+const buscarVentasEntreFechas = async () => {
+  loading.value = true;
+  try {
+    if (fechaInicio.value && fechaFin.value) {
+      await obtenerTotalVentasEntreFechas(fechaInicio.value, fechaFin.value);
+      
+      Notify.create("Búsqueda realizada correctamente");
+    } else {
+      Notify.create("Por favor selecciona una fecha de inicio y fin");
+    }
+  } catch (error) {
+    console.error("Error al buscar ventas entre fechas:", error);
+    Notify.create("Error al buscar ventas entre fechas");
+  } finally {
+    loading.value = false;
+  }
+};
 let listarMaquinas = async () => {
   loading.value = true;
   try {
@@ -190,9 +232,8 @@ let listarMaquinas = async () => {
     }));
   } catch {
     console.log("error");
-  }finally{
+  } finally {
     loading.value = false;
-
   }
 };
 
@@ -206,14 +247,13 @@ const agregarVentas = async () => {
     Notify.create("por favor ingrese el codigo ");
   } else if (cantidad.value == "") {
     Notify.create("por favor ingrese la cantidad");
-  }else {
+  } else {
     loading.value = true;
     try {
       await useVenta.agregarVenta({
         codigoProducto: codigo.value,
         cantidad: cantidad.value,
         totalVentas: totalVentas.value,
-      
       });
       cerrar();
       listarMaquinas();
@@ -253,10 +293,10 @@ const editarVenta = async () => {
       fechaInicio: fechaInicio.value,
       fechaFin: fechaFin.value,
     });
-      Notify.create({
-        message: "Venta Editada",
-        color: "green",
-      });
+    Notify.create({
+      message: "Venta Editada",
+      color: "green",
+    });
     cerrar();
     listarMaquinas();
   } catch (error) {
@@ -278,10 +318,10 @@ const buscarVenta = async () => {
       const res = await useVenta.getVentaID(selectedSedeId.value.value);
       if (res && res.ventas) {
         rows.value = [res.ventas];
-          Notify.create({
-        message: "ventas encontrada",
-        color: "green",
-      });
+        Notify.create({
+          message: "ventas encontrada",
+          color: "green",
+        });
       } else {
         Notify.create("No se encontró la ventas");
       }
@@ -361,5 +401,9 @@ onMounted(() => {
 }
 .btn > * {
   border-radius: 30px;
+}
+.fecha{
+  width: 180px;
+  
 }
 </style>

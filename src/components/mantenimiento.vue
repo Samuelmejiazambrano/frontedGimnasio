@@ -194,16 +194,21 @@ const listarMantenimientos = async () => {
     loading.value = false;
   }
 };
-
+const trimInputs = () => {
+  descripcion.value = descripcion.value.trim();
+  codigo.value = codigo.value.trim();
+     fecha.value= fecha.value.trim();
+      precio.value=precio.value.trim();
+};
 const agregarMantenimiento = async () => {
   loading.value = true;
-
+trimInputs()
   const idMaquinaSeleccionada = idMaquina.value ? idMaquina.value.value : null;
   const idUsuarioSeleccionado = responsable.value
     ? responsable.value.value
     : null;
 
-  if (descripcion.value === "") {
+  if (descripcion.value.trim() === "") {
     Notify.create("Por favor ingrese la descripción.");
   } else if (codigo.value.length <= 3) {
     Notify.create("Por favor ingrese el código.");

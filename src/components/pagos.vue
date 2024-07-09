@@ -84,6 +84,30 @@
         <q-btn color="green" icon="search" @click="buscarPago">
           <q-tooltip>Buscar Pago</q-tooltip>
         </q-btn>
+                 <q-input v-model="fechaInicio" label="Fecha de Inicio" outlined class="fecha">
+          <template v-slot:append>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                <q-date v-model="fechaInicio" mask="YYYY-MM-DD" />
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+
+        <q-input v-model="fechaFin" label="Fecha de Fin" outlined class="fecha">
+          <template v-slot:append>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                <q-date v-model="fechaFin" mask="YYYY-MM-DD" />
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+          <q-btn color="green" icon="search" @click="buscarVentasEntreFechas">
+            <q-tooltip
+              >Buscar las ventas en el rango de fechas seleccionado</q-tooltip
+            >
+          </q-btn>
 
         <q-btn color="green" @click="abrir(1)">
           <q-tooltip>Añadir Producto</q-tooltip>
@@ -155,6 +179,8 @@ let plan = ref([]);
 let planList = ref("");
 let options = ref([]);
 let selectedSedeId = ref(null);
+let fechaInicio = ref("");
+let fechaFin = ref("");
 
 let currentId = ref(null);
 
@@ -176,6 +202,8 @@ let columns = ref([
     field: (row) => (row.idCliente ? row.idCliente.nombre : "N/A"),
   },
   { name: "valor", label: "Valor", align: "center", field: "valor" },
+    { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
+
   { name: "estado", label: "Estado", align: "center", field: "estado" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
@@ -378,6 +406,34 @@ const buscarPago = async () => {
   }
 };
 
+const obtenerTotalVentasEntreFechas = async (fechaInicio, fechaFin) => {
+  try {
+  
+    const response = await usePago.getTotalVentasEntreFechas( fechaInicio, fechaFin );
+    console.log("Total de pagos:", response.ventas);
+        rows.value = response.pagos;
+
+  } catch (error) {
+    console.error("Error al obtener el total de ventas:", error);
+  }
+}
+const buscarVentasEntreFechas = async () => {
+  loading.value = true;
+  try {
+    if (fechaInicio.value && fechaFin.value) {
+      await obtenerTotalVentasEntreFechas(fechaInicio.value, fechaFin.value);
+      
+      Notify.create("Búsqueda realizada correctamente");
+    } else {
+      Notify.create("Por favor selecciona una fecha de inicio y fin");
+    }
+  } catch (error) {
+    console.error("Error al buscar ventas entre fechas:", error);
+    Notify.create("Error al buscar ventas entre fechas");
+  } finally {
+    loading.value = false;
+  }
+};
 const listarPagosActivos = async () => {
   loading.value = true;
 
@@ -458,7 +514,10 @@ onMounted(() => {
   border-radius: 8px;
   width: 150vh;
 }
-
+.fecha{
+  width: 180px;
+  
+}
 /* Ajuste del contenedor de la tabla */
 .sss {
   display: flex;

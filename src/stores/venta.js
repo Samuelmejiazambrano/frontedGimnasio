@@ -78,7 +78,27 @@ export const useVentaStore = defineStore("Venta", () => {
           return error;
       }
   };
+  const getTotalVentasEntreFechas = async (fechaInicio, fechaFin) => {
+    try {
+    console.log(fechaFin);
+    console.log(fechaInicio);
+
+      let res = await axios.get(`/venta/fechas/`, {
+        params: {fechaInicio,fechaFin },
+        headers: {
+          "x-token": useUsuario.token,
+        },
+        
+      });
+    
+      return res.data;
+    } catch (error) {
+      console.error("Error al obtener el total de ventas entre fechas:", error);
+      throw error;
+    }
+  };
+  
     return {
-        getVenta,agregarVenta,actualizarVenta,getInventario,getVentaID
+        getVenta,agregarVenta,actualizarVenta,getInventario,getVentaID,getTotalVentasEntreFechas
     };
 });

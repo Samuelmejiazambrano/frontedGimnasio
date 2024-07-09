@@ -75,6 +75,7 @@ let clienteNoEncontrado = ref(false);
 function abrir(accionModal) {
   accion.value = accionModal;
   alert.value = true;
+  
 }
 
 let currentSeguimientoId = ref(null);
@@ -101,20 +102,47 @@ function mostrarSeguimientos(seguimiento, cliente) {
 
 function cerrar() {
   alert.value = false;
+    cc.value = "";
+  nombre.value = "";
+  fechaIngreso.value = "";
+  fechaNac.value = "";
+  direccion.value = "";
+  telefono.value = "";
+  foto.value = "";
+  plan.value = "";
+  peso.value = "";
+  imc.value = "";
+  brazo.value = "";
+  cintura.value = "";
+  pie.value = "";
+  estatura.value = "";
+}
+
+function trimValues() {
+  cc.value = cc.value.trim();
+  nombre.value = nombre.value.trim();
+  fechaIngreso.value = fechaIngreso.value.trim();
+  fechaNac.value = fechaNac.value.trim();
+  direccion.value = direccion.value.trim();
+  telefono.value = telefono.value.trim();
 }
 function cargarDatosIngresos(cliente) {
   currentId.value = cliente._id;
   cc.value = cliente.cc;
   nombre.value = cliente.nombre;
-  fechaIngreso.value = cliente.fechaIngreso;
-  fechaNac.value = cliente.fechaNac;
+  fechaIngreso.value = formatDate(cliente.fechaIngreso);
+  fechaNac.value =formatDate( cliente.fechaNac);
   direccion.value = cliente.direccion;
   telefono.value = cliente.telefono;
   foto.value = cliente.foto;
   plan.value = cliente.nombrePlan;
   abrir(2); 
 }
-
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toISOString().substr(0, 10);
+};
 const editarCliente = async () => {
   loading.value = true;
   try {
@@ -238,41 +266,39 @@ async function listarPlanes() {
   }
 }
 
-async function agregarCliente() {
+const agregarCliente = async () => {
   loading.value = true;
-  const idPlanSeleccionado = plan.value
-    ? plan.value.value
-    : null;
+
+  const idPlanSeleccionado = plan.value ? plan.value.value : null;
+  
   const namePattern = /^[A-Za-z\s]+$/;
+  trimValues();
   if (!/^\d{8,}$/.test(cc.value)) {
-    Notify.create("por favor ingrese la cc");
+    Notify.create("Por favor ingrese la cédula");
   } else if (!namePattern.test(nombre.value)) {
-    Notify.create("por favor ingrese el nombre ");
+    Notify.create("Por favor ingrese el nombre");
   } else if (fechaIngreso.value == "") {
-    Notify.create("por favor ingrese la fecha de ingreso");
+    Notify.create("Por favor ingrese la fecha de ingreso");
   } else if (fechaNac.value == "") {
-    Notify.create("por favor ingrese la fechaNac");
+    Notify.create("Por favor ingrese la fecha de nacimiento");
   } else if (direccion.value == "") {
-    Notify.create("por favor ingrese el telefono");
+    Notify.create("Por favor ingrese la dirección");
   } else if (telefono.value.length !== 10) {
-    Notify.create("por favor ingrese el telefono  ");
+    Notify.create("Por favor ingrese el teléfono correctamente");
   } else if (foto.value == "") {
-    console.log(foto.value);
-    Notify.create("por favor ingrese la foto ");
+    Notify.create("Por favor ingrese la foto");
   } else if (plan.value == "") {
-    Notify.create("por favor ingrese el plan ");
-    
-    console.log(idPlanSeleccionado);
+    Notify.create("Por favor ingrese el plan");
   } else {
     try {
-      let response = await useCliente.postCliente({
+      await useCliente.postCliente({
         cc: cc.value,
         nombre: nombre.value,
         fechaIngreso: fechaIngreso.value,
         fechaNac: fechaNac.value,
         direccion: direccion.value,
         telefono: telefono.value,
-        foto: foto.value, // Ensure foto is included here
+        foto: foto.value,
         plan: idPlanSeleccionado,
       });
 
@@ -280,11 +306,21 @@ async function agregarCliente() {
       listarCliente();
     } catch (error) {
       console.error("Error al agregar cliente:", error);
+      if (error.response && error.response.data && error.response.data.errors) {
+        error.response.data.errors.forEach((err) => {
+          Notify.create({
+            message: err.msg,
+            color: "red",
+          });
+        });
+      } else {
+        Notify.create("Error al agregar el cliente");
+      }
     } finally {
       loading.value = false;
     }
   }
-}
+};
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -329,7 +365,7 @@ const handleFileUpload = (event) => {
 
 async function agregarSeguimiento() {
   loading.value = true;
-
+   trimValues()
   try {
     let seguimientoData = {
       fechaIngreso: new Date(),

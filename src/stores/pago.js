@@ -45,6 +45,25 @@ export const usePagoStore = defineStore("Venta", () => {
             return error;
         }
     };
+    const getTotalVentasEntreFechas = async (fechaInicio, fechaFin) => {
+      try {
+      console.log(fechaFin);
+      console.log(fechaInicio);
+  
+        let res = await axios.get(`pago/fechas/`, {
+          params: {fechaInicio,fechaFin },
+          headers: {
+            "x-token": useUsuario.token,
+          },
+          
+        });
+      
+        return res.data;
+      } catch (error) {
+        console.error("Error al obtener el total de ventas entre fechas:", error);
+        throw error;
+      }
+    };
     let getCliente = async () => {
         try {
             let res = await axios.get("/clientes",{
@@ -155,6 +174,6 @@ export const usePagoStore = defineStore("Venta", () => {
     }
   };
     return {
-        getPago,getCliente,getPlan,agregarPago,actualizarPago,activarPago,desactivarPago,getPagoID,getPagoActivos,getPagoInactivos
+        getPago,getCliente,getPlan,agregarPago,actualizarPago,activarPago,desactivarPago,getPagoID,getPagoActivos,getPagoInactivos,getTotalVentasEntreFechas
     };
 });

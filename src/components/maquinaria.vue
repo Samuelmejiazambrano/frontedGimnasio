@@ -249,12 +249,12 @@ const buscarMaquinaria = async () => {
       const res = await useMaquina.getMaquinariaID(selectedSedeId.value.value);
       if (res && res.maquinarias) {
         rows.value = [res.maquinarias];
-        Notify.create("Sede encontrada");
+        Notify.create("Maquinaria encontrada");
       } else {
-        Notify.create("No se encontró la sede");
+        Notify.create("No se encontró la Maquinaria");
       }
     } else {
-      Notify.create("Por favor ingrese un ID de sede");
+      Notify.create("Por favor ingrese un ID de Maquinaria");
     }
   } catch (error) {
     console.error("Error al buscar la sede:", error);
@@ -269,10 +269,55 @@ const buscarMaquinaria = async () => {
 onMounted(() => {
   listarMaquinas();
 });
+const trimMaquinariaFields = () => {
+  descripcion.value = descripcion.value.trim();
+  codigo.value = codigo.value.trim();
+};
+// const agregarMaquina = async () => {
+//   loading.value = true;
+//   trimMaquinariaFields()
+//   if (descripcion.value === "") {
+//     Notify.create("Por favor ingrese la descripción");
+//   } else if (codigo.value.length <= 3) {
+//     Notify.create("Por favor ingrese el código");
+//   } else if (idSede.value === "") {
+//     Notify.create("Por favor ingrese el ID de la sede");
+//   } else if (fecha.value === "") {
+//     Notify.create("Por favor ingrese la fecha");
+//   } else if (FechaUmantenimiento.value === "") {
+//     Notify.create("Por favor ingrese la fecha de último mantenimiento");
+//   } else {
+//     loading.value = true;
+//     try {
+//       const idSedeValue = idSede.value;
+//       const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
 
+//       if (!idSedeSeleccionada) {
+//         console.error("Error: No se ha seleccionado una sede.");
+//         return;
+//       }
+
+//       await useMaquina.agregarMaquinaria({
+//         descripcion: descripcion.value,
+//         codigo: codigo.value,
+//         idSede: idSedeSeleccionada,
+//         fecha: fecha.value,
+//         FechaUmantenimiento: FechaUmantenimiento.value,
+//       });
+
+//       cerrar();
+//       listarMaquinas();
+//     } catch (error) {
+//       console.error("Error al agregar maquinaria:", error);
+//     }finally{
+//         loading.value = false;
+
+//     }
+//   }
+// };
 const agregarMaquina = async () => {
   loading.value = true;
-
+  trimMaquinariaFields();
   if (descripcion.value === "") {
     Notify.create("Por favor ingrese la descripción");
   } else if (codigo.value.length <= 3) {
@@ -284,7 +329,6 @@ const agregarMaquina = async () => {
   } else if (FechaUmantenimiento.value === "") {
     Notify.create("Por favor ingrese la fecha de último mantenimiento");
   } else {
-    loading.value = true;
     try {
       const idSedeValue = idSede.value;
       const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
@@ -306,9 +350,18 @@ const agregarMaquina = async () => {
       listarMaquinas();
     } catch (error) {
       console.error("Error al agregar maquinaria:", error);
-    }finally{
-        loading.value = false;
-
+      if (error.response && error.response.data && error.response.data.errors) {
+        error.response.data.errors.forEach((err) => {
+          Notify.create({
+            message: err.msg,
+            color: "red",
+          });
+        });
+      } else {
+        Notify.create("Error al agregar la maquinaria");
+      }
+    } finally {
+      loading.value = false;
     }
   }
 };
@@ -332,7 +385,7 @@ const formatDate = (dateString) => {
 
 const editarMaquina = async () => {
     loading.value = true;
-
+trimMaquinariaFields()
   const idSedeValue = idSede.value;
   const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
   try {

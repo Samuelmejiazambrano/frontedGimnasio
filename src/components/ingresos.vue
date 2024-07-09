@@ -37,7 +37,7 @@
           <q-select
             outlined
             v-model="idSede"
-            label="Cliente"
+            label="Sedes"
             class="q-my-md q-mx-md"
             :options="
               sedesList.map((sedes) => ({

@@ -193,7 +193,7 @@ let columns = ref([
   },
   { name: "horario", label: "horario", align: "center", field: "horario" },
   { name: "ciudad", label: "ciudad", align: "center", field: "ciudad" },
-  { name: "createAt", label: "createAt", align: "center", field: "createAt" },
+  { name: "createAt", label: "Fecha", align: "center", field: "createAt" },
   { name: "estado", label: "Estado", align: "center", field: "estado" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
@@ -259,7 +259,15 @@ const listarSedeInactivo = async () => {
     loading.value = false;
   }
 };
-
+const trimInputValues = () => {
+  nombre.value = nombre.value.trim();
+  correo.value = correo.value.trim();
+  direccion.value = direccion.value.trim();
+  codigo.value = codigo.value.trim();
+  hora.value = hora.value.trim();
+  ciudad.value = ciudad.value.trim();
+  telefono.value = telefono.value.trim();
+};
 const buscarSede = async () => {
   loading.value = true;
   try {
@@ -298,6 +306,7 @@ let expresiontel = /^\d{8,}$/;
 let verifitel = expresiontel.test(telefono.value);
 
 const agregarSede = async () => {
+  trimInputValues();
   if (codigo.value == "") {
     Notify.create("Por favor ingrese su codigo");
   } else if (nombre.value == "") {
@@ -328,7 +337,16 @@ const agregarSede = async () => {
       listarIngesos();
     } catch (error) {
       console.error("Error al agregar la sede:", error);
-      Notify.create("Error al agregar la sede");
+      if (error.response && error.response.data && error.response.data.errors) {
+        Notify.create({
+          message: error.response.data.errors[0].msg,
+          color: "red",
+        });
+      } else {
+        Notify.create("Error al agregar la sede");
+      }
+    } finally {
+      loading.value = false;
     }
   }
 };
@@ -345,6 +363,7 @@ const cargarDatosUsuario = (usuario) => {
 };
 
 const editarSede = async () => {
+trimInputValues()
   if (codigo.value == "") {
     Notify.create("Por favor ingrese su codigo");
   } else if (nombre.value == "") {
