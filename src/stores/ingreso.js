@@ -50,19 +50,20 @@ export const useIngresoStore = defineStore("Ingreso", () => {
         }
     };
     let postIngreso = async (ingreso) => {
-        try {
-            let res = await axios.post("/ingreso",ingreso,{
-                headers: {
-                  "x-token":useUsuario.token,
-                },
-              });
-            console.log(res);
-            return res.data;
-        } catch (error) {
-            console.log(error);
-            return error;
-        }
+      try {
+        let res = await axios.post("/ingreso/", ingreso, {
+          headers: {
+            "x-token": useUsuario.token,
+          },
+        });
+        console.log("Response from server (postIngreso):", res);
+        return res.data;
+      } catch (error) {
+        console.error("Error in postIngreso:", error.response ? error.response.data : error);
+        return { success: false, message: error.response ? error.response.data.message : error.message };
+      }
     };
+    
     let actualizarIngreso = async (usuario) => {
         try {
             const res = await axios.put(`/ingreso/actualizar/${usuario._id}`,usuario,{

@@ -14,8 +14,8 @@
           <q-tooltip>Buscar Ingreso</q-tooltip>
         </q-btn>
         <q-btn color="green" @click="abrir(1)">
-          <q-tooltip>Añadir Producto</q-tooltip>
-          Añadir Producto
+          <q-tooltip>Añadir Ingreso</q-tooltip>
+          Añadir Ingreso
         </q-btn>
       </div>
       <q-dialog v-model="alert" persistent>
@@ -206,12 +206,12 @@ let listarMaquinas = async () => {
     loading.value = false;
   }
 };
-
 const agregarIngreso = async () => {
   const idSedeValue = idSede.value;
   const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
   const idclienteValue = idCliente.value;
   const idclienteSeleccionada = idclienteValue ? idclienteValue.value : null;
+
   if (!codigo.value) {
     Notify.create("Por favor ingrese el código");
     return;
@@ -230,18 +230,30 @@ const agregarIngreso = async () => {
         cliente: idclienteSeleccionada,
       });
       Notify.create({
-        message: "Ingresos Agregados",
+        message: "Ingreso Agregado",
         color: "green",
       });
       cerrar();
       listarMaquinas();
     } catch (error) {
       console.error("Error al agregar ingreso:", error);
+      if (error && error.message && error.message.includes("código duplicado")) {
+        Notify.create({
+          message: "El código ingresado ya existe",
+          color: "red",
+        });
+      } else {
+        Notify.create({
+          message: "Error al agregar ingreso",
+          color: "red",
+        });
+      }
     } finally {
       loading.value = false;
     }
   }
 };
+
 
 const editarIngreso = async () => {
   loading.value = true;

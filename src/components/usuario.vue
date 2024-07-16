@@ -440,7 +440,7 @@ onMounted(() => {
 .title {
   font-size: 2.1rem;
   font-family: "Roboto", sans-serif;
-  border-bottom: 3px solid #b31919;
+  border-bottom: 3px solid #344860;
   padding-top: 20px;
   font-weight: 900;
 }

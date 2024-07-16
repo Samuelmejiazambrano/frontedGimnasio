@@ -270,27 +270,28 @@ const agregarCliente = async () => {
   loading.value = true;
 
   const idPlanSeleccionado = plan.value ? plan.value.value : null;
-  
+
   const namePattern = /^[A-Za-z\s]+$/;
   trimValues();
-  if (!/^\d{8,}$/.test(cc.value)) {
-    Notify.create("Por favor ingrese la cédula");
-  } else if (!namePattern.test(nombre.value)) {
-    Notify.create("Por favor ingrese el nombre");
-  } else if (fechaIngreso.value == "") {
-    Notify.create("Por favor ingrese la fecha de ingreso");
-  } else if (fechaNac.value == "") {
-    Notify.create("Por favor ingrese la fecha de nacimiento");
-  } else if (direccion.value == "") {
-    Notify.create("Por favor ingrese la dirección");
-  } else if (telefono.value.length !== 10) {
-    Notify.create("Por favor ingrese el teléfono correctamente");
-  } else if (foto.value == "") {
-    Notify.create("Por favor ingrese la foto");
-  } else if (plan.value == "") {
-    Notify.create("Por favor ingrese el plan");
-  } else {
-    try {
+
+  try {
+    if (!/^\d{8,}$/.test(cc.value)) {
+      throw new Error("Por favor ingrese la cédula");
+    } else if (!namePattern.test(nombre.value)) {
+      throw new Error("Por favor ingrese el nombre");
+    } else if (fechaIngreso.value == "") {
+      throw new Error("Por favor ingrese la fecha de ingreso");
+    } else if (fechaNac.value == "") {
+      throw new Error("Por favor ingrese la fecha de nacimiento");
+    } else if (direccion.value == "") {
+      throw new Error("Por favor ingrese la dirección");
+    } else if (telefono.value.length !== 10) {
+      throw new Error("Por favor ingrese el teléfono correctamente");
+    } else if (foto.value == "") {
+      throw new Error("Por favor ingrese la foto");
+    } else if (plan.value == "") {
+      throw new Error("Por favor ingrese el plan");
+    } else {
       await useCliente.postCliente({
         cc: cc.value,
         nombre: nombre.value,
@@ -304,23 +305,23 @@ const agregarCliente = async () => {
 
       cerrar();
       listarCliente();
-    } catch (error) {
-      console.error("Error al agregar cliente:", error);
-      if (error.response && error.response.data && error.response.data.errors) {
-        error.response.data.errors.forEach((err) => {
-          Notify.create({
-            message: err.msg,
-            color: "red",
-          });
-        });
-      } else {
-        Notify.create("Error al agregar el cliente");
-      }
-    } finally {
-      loading.value = false;
+      Notify.create({
+        message: "Cliente agregado correctamente",
+        color: "green",
+      });
     }
+  } catch (error) {
+    console.error("Error al agregar cliente:", error);
+    Notify.create({
+      message: error.message,
+      color: "red",
+    });
+  } finally {
+    loading.value = false;
   }
 };
+
+
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -509,7 +510,7 @@ onMounted(async () => {
 
 <template>
   <div id="sss">
-    <h2 class="title">Lista de cliente</h2>
+    <h2 class="title">Lista de Cliente</h2>
 
     <q-dialog v-model="alert" persistent>
       <q-card class="" style="width: 500px">

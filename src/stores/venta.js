@@ -97,8 +97,22 @@ export const useVentaStore = defineStore("Venta", () => {
       throw error;
     }
   };
+  let getTotal = async () => {
+    try {
+        let res = await axios.get("/venta/total",{
+            headers: {
+              "x-token":useUsuario.token,
+            },
+          });
+        console.log(res);
+        return res.data;
+    } catch (error) {
+        console.log(error);
+        return error;
+    }
+};
   
     return {
-        getVenta,agregarVenta,actualizarVenta,getInventario,getVentaID,getTotalVentasEntreFechas
+        getVenta,agregarVenta,actualizarVenta,getInventario,getVentaID,getTotalVentasEntreFechas,getTotal
     };
 });

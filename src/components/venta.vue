@@ -153,12 +153,10 @@
          
         </template>
       </q-table>
-      <div class="text-h6 total">Total General: {{ totalVentasGenerales }}</div>
-<q-tr>
-  <q-td colspan="4" class="text-right">
-    <div class="text-h6 total">Total Entre Fechas: {{ totalVentas }}</div>
-  </q-td>
-</q-tr>
+  <div class="text-h6 total">Total General: {{ totalVentasGenerales }}</div>
+      <div v-if="fechaInicio && fechaFin" class="text-h6 total">
+        Total Entre Fechas: {{ totalVentas }}
+      </div>
     </div>
   </div>
 </template>
@@ -209,7 +207,7 @@ let columns = ref([
     name: "totalVentas",
     label: "Total Ventas",
     align: "center",
-    field: "totalVentas",
+    field: (row) => formatNumber(row.totalVentas)
   },
 
   { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
@@ -225,6 +223,11 @@ const limpiar = () => {
   fechaFin.value = "";
   currentId.value = null;
 };
+
+const formatNumber = (number) => {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
 const obtenerTotalVentasEntreFechas = async (fechaInicio, fechaFin) => {
   try {
     const response = await useVenta.getTotalVentasEntreFechas(
@@ -267,6 +270,8 @@ let listarMaquinas = async () => {
 
       value: venta._id,
     }));
+      totalVentasGenerales.value = response.totalVentasGeneral; 
+     console.log(totalVentasGenerales);
   } catch {
     console.log("error");
   } finally {
@@ -277,8 +282,7 @@ let listarMaquinas = async () => {
 let listarInventario = async () => {
   let response = await useVenta.getInventario();
   inventarioOptions.value = response.inventarios; 
-     totalVentasGenerales.value = response.totalVentasGeneral; 
-     console.log(response.totalVentasGeneral);
+   
 };
 
 const agregarVentas = async () => {
