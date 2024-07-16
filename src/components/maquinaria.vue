@@ -189,7 +189,13 @@ const currentId = ref(null);
 const selectedOption = ref("listarTodos");
 const loading = ref(false); // Para el overlay de carga de la tabla
 
-
+const limpiarCajas = () => {
+  descripcion.value = "";
+  codigo.value = "";
+  idSede.value = "";
+  fecha.value = "";
+  FechaUmantenimiento.value = "";
+};
 const seleccionarAccion = async () => {
   if (selectedOption.value === "listarTodos") {
     await listarMaquinas();
@@ -207,6 +213,7 @@ const abrir = (accionModal) => {
 
 const cerrar = () => {
   alert.value = false;
+  limpiarCajas()
 };
 
 const listarMaquinas = async () => {
@@ -229,7 +236,7 @@ const listarMaquinas = async () => {
   });
 
   options.value = response.maquinarias.map((maquinaria) => ({
-    label: maquinaria.descripcion,
+    label: `${maquinaria.descripcion} - ${maquinaria.codigo}`,
     value: maquinaria._id,
   }));
   }catch{
@@ -271,7 +278,6 @@ onMounted(() => {
 });
 const trimMaquinariaFields = () => {
   descripcion.value = descripcion.value.trim();
-  codigo.value = codigo.value.trim();
 };
 // const agregarMaquina = async () => {
 //   loading.value = true;

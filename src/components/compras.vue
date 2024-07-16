@@ -11,8 +11,13 @@
           label="Seleccionar Plan"
         />
 
-        <q-btn color="green"           icon="search"
- class="sam" @click="buscarPlan()" :disable="loading">
+        <q-btn
+          color="green"
+          icon="search"
+          class="sam"
+          @click="buscarPlan()"
+          :disable="loading"
+        >
           <q-tooltip>Buscar Plan</q-tooltip>
           <template v-slot:loading>
             <q-spinner size="20px" color="white" />
@@ -42,7 +47,9 @@
 
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 500px">
-          <q-card-section style="background-color: #344860; margin-bottom: 20px">
+          <q-card-section
+            style="background-color: #344860; margin-bottom: 20px"
+          >
             <div class="text-h6 text-white">
               {{ accion === 1 ? "Agregar Plan" : "Editar Plan" }}
             </div>
@@ -86,10 +93,17 @@
               <template v-slot:loading>
                 <q-spinner color="primary" size="1em" />
               </template>
-              <q-tooltip>{{ accion === 1 ? "Agregar Plan" : "Editar Plan" }}</q-tooltip>
+              <q-tooltip>{{
+                accion === 1 ? "Agregar Plan" : "Editar Plan"
+              }}</q-tooltip>
             </q-btn>
-            <q-btn label="Cerrar" color="black" outline @click="cerrar" :disable="loading">
-              
+            <q-btn
+              label="Cerrar"
+              color="black"
+              outline
+              @click="cerrar"
+              :disable="loading"
+            >
               <q-tooltip>Cerrar</q-tooltip>
             </q-btn>
           </q-card-actions>
@@ -115,11 +129,16 @@
         <template v-slot:body-cell-opciones="props">
           <q-td :props="props">
             <div class="q-pa-md q-gutter-sm"></div>
-            <q-btn @click="togglePlanStatus(props.row)" :loading="props.row.loading">
+            <q-btn
+              @click="togglePlanStatus(props.row)"
+              :loading="props.row.loading"
+            >
               <span role="img" aria-label="Toggle">
                 {{ props.row.estado === 1 ? "❌" : "✅" }}
               </span>
-              <q-tooltip>{{ props.row.estado === 1 ? "Desactivar Plan" : "Activar Plan" }}</q-tooltip>
+              <q-tooltip>{{
+                props.row.estado === 1 ? "Desactivar Plan" : "Activar Plan"
+              }}</q-tooltip>
               <template v-slot:loading>
                 <q-spinner color="primary" size="1em" />
               </template>
@@ -146,7 +165,12 @@ let rows = ref([]);
 let options = ref([]);
 let columns = ref([
   { name: "codigo", label: "codigo", align: "center", field: "codigo" },
-  { name: "valor", label: "Valor", align: "center", field: "valor" },
+  {
+    name: "valor",
+    label: "Valor",
+    align: "center",
+    field: (row) => formatNumber(row.valor),
+  },
   {
     name: "CantDias",
     label: "Cantidad de Días",
@@ -165,11 +189,23 @@ let columns = ref([
 
 let loading = ref(false); // Variable para controlar el estado de carga
 let selectedOption = ref("listarTodos");
+
+const limpiarCajas = () => {
+  CantDias.value = 0;
+  descripcion.value = "";
+  codigo.value = 0;
+  valor.value = 0;
+  currentId.value = null;
+};
+
 const trimInputValues = () => {
   descripcion.value = descripcion.value.trim();
   codigo.value = codigo.value.toString().trim();
   valor.value = valor.value.toString().trim();
   CantDias.value = CantDias.value.toString().trim();
+};
+const formatNumber = (number) => {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 const seleccionarAccion = async () => {
   loading.value = true;
@@ -195,7 +231,8 @@ const listarIngesos = async () => {
     let r = await usePlan.getPlan();
     rows.value = r.planes;
     options.value = r.planes.map((plan) => ({
-      label: plan.descripcion,
+      label: `${plan.descripcion} - ${plan.codigo}`,
+
       value: plan._id,
     }));
     Notify.create({
@@ -252,6 +289,7 @@ function abrir(accionModal) {
 
 function cerrar() {
   alert.value = false;
+  limpiarCajas();
 }
 
 const cargarDatosUsuario = (usuario) => {
@@ -265,7 +303,7 @@ const cargarDatosUsuario = (usuario) => {
 
 const updatePlanes = async () => {
   loading.value = true;
-  trimInputValues()
+  trimInputValues();
   try {
     await usePlan.UpdatePlan({
       _id: currentId.value,
@@ -274,7 +312,7 @@ const updatePlanes = async () => {
       valor: valor.value,
       CantDias: CantDias.value,
     });
-
+    limpiarCajas();
     cerrar();
     await listarIngesos();
     Notify.create({
@@ -343,12 +381,14 @@ async function agregarPlan() {
   trimInputValues();
   try {
     const val = (/\B(?=(\d{3})+(?!\d))/g, ".");
-    if (CantDias.value == "") {
-      Notify.create("Por favor ingrese la cantidad de días");
-    } else if (descripcion.value == "") {
+    if (CantDias.value <= 0) {
+      Notify.create("Por favor ingrese una cantidad de días válida");
+    } else if (descripcion.value === "") {
       Notify.create("Por favor ingrese la descripción");
-    } else if (codigo.value.length <= 3) {
-      Notify.create("Por favor ingrese el código");
+    } else if (codigo.value <= 0) {
+      Notify.create("Por favor ingrese un código válido");
+    } else if (valor.value <= 0) {
+      Notify.create("Por favor ingrese un valor válido");
     } else {
       await usePlan.agregarPlan({
         descripcion: descripcion.value,
@@ -357,6 +397,7 @@ async function agregarPlan() {
         CantDias: CantDias.value,
       });
       cerrar();
+      limpiarCajas();
       await listarIngesos();
       Notify.create({
         message: "Plan añadido correctamente",

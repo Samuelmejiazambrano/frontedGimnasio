@@ -71,7 +71,6 @@
             </q-btn>
             <q-btn label="Cerrar" color="black" outline @click="cerrar">
               <q-tooltip>Cerrar</q-tooltip>
-              
             </q-btn>
           </q-card-actions>
         </q-card>
@@ -198,7 +197,7 @@ let listarMaquinas = async () => {
       };
     });
     options.value = response.ingresos.map((ingreso) => ({
-      label: ingreso.cliente.nombre,
+      label: `${ingreso.cliente.nombre} - ${ingreso.cliente.cc}`,
       value: ingreso._id,
     }));
   } catch (error) {
@@ -230,7 +229,7 @@ const agregarIngreso = async () => {
         sede: idSedeSeleccionada,
         cliente: idclienteSeleccionada,
       });
-         Notify.create({
+      Notify.create({
         message: "Ingresos Agregados",
         color: "green",
       });
@@ -246,18 +245,21 @@ const agregarIngreso = async () => {
 
 const editarIngreso = async () => {
   loading.value = true;
-
+  const idSedeValue = idSede.value;
+  const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
+  const idclienteValue = idCliente.value;
+  const idclienteSeleccionada = idclienteValue ? idclienteValue.value : null;
   try {
     await useIngreso.actualizarIngreso({
       _id: currentId.value,
       codigo: codigo.value,
-      sede: idSede.value,
-      cliente: idCliente.value,
+      sede: idSedeSeleccionada,
+      cliente: idclienteSeleccionada,
     });
-         Notify.create({
-        message: "Ingresos Editado",
-        color: "green",
-      });
+    Notify.create({
+      message: "Ingresos Editado",
+      color: "green",
+    });
     cerrar();
     listarMaquinas();
   } catch (error) {
@@ -282,10 +284,10 @@ const buscarIngreso = async () => {
       const res = await useIngreso.getIngresoID(selectedSedeId.value.value);
       if (res && res.ingresos) {
         rows.value = [res.ingresos];
-             Notify.create({
-        message: "Ingreso Encontrado",
-        color: "green",
-      });
+        Notify.create({
+          message: "Ingreso Encontrado",
+          color: "green",
+        });
       } else {
         Notify.create("No se encontró la sede");
       }

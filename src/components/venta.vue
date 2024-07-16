@@ -10,13 +10,22 @@
           :options="options"
           label="Seleccionar Producto"
         />
-            <q-btn color="green" icon="search" @click="buscarVenta">
+        <q-btn color="green" icon="search" @click="buscarVenta">
           <q-tooltip>Buscar las ventas de la sede seleccionada</q-tooltip>
         </q-btn>
-           <q-input v-model="fechaInicio" label="Fecha de Inicio" outlined class="fecha">
+        <q-input
+          v-model="fechaInicio"
+          label="Fecha de Inicio"
+          outlined
+          class="fecha"
+        >
           <template v-slot:append>
             <q-icon name="event" class="cursor-pointer">
-              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+              <q-popup-proxy
+                ref="qDateProxy"
+                transition-show="scale"
+                transition-hide="scale"
+              >
                 <q-date v-model="fechaInicio" mask="YYYY-MM-DD" />
               </q-popup-proxy>
             </q-icon>
@@ -26,7 +35,11 @@
         <q-input v-model="fechaFin" label="Fecha de Fin" outlined class="fecha">
           <template v-slot:append>
             <q-icon name="event" class="cursor-pointer">
-              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+              <q-popup-proxy
+                ref="qDateProxy"
+                transition-show="scale"
+                transition-hide="scale"
+              >
                 <q-date v-model="fechaFin" mask="YYYY-MM-DD" />
               </q-popup-proxy>
             </q-icon>
@@ -34,12 +47,12 @@
         </q-input>
 
         <!-- Botón para buscar entre fechas -->
-          <q-btn color="green" icon="search" @click="buscarVentasEntreFechas">
-            <q-tooltip
-              >Buscar las ventas en el rango de fechas seleccionado</q-tooltip
-            >
-          </q-btn>
-    
+        <q-btn color="green" icon="search" @click="buscarVentasEntreFechas">
+          <q-tooltip
+            >Buscar las ventas en el rango de fechas seleccionado</q-tooltip
+          >
+        </q-btn>
+
         <q-btn color="green" @click="abrir(1)">
           Añadir Venta
           <q-tooltip>Añadir un nuevo producto a la lista de ventas</q-tooltip>
@@ -57,7 +70,7 @@
           <q-select
             outlined
             v-model="codigo"
-            label="Código"
+            label="Producto"
             class="q-my-md q-mx-md"
             :options="inventarioOptions"
             option-label="descripcion"
@@ -137,8 +150,15 @@
               <q-tooltip>Editar esta venta</q-tooltip>
             </q-btn>
           </q-td>
+         
         </template>
       </q-table>
+      <div class="text-h6 total">Total General: {{ totalVentasGenerales }}</div>
+<q-tr>
+  <q-td colspan="4" class="text-right">
+    <div class="text-h6 total">Total Entre Fechas: {{ totalVentas }}</div>
+  </q-td>
+</q-tr>
     </div>
   </div>
 </template>
@@ -161,6 +181,8 @@ let accion = ref(1);
 let currentId = ref(null);
 let options = ref([]);
 let selectedSedeId = ref(null);
+let totalVentasGenerales = ref(0);
+
 function abrir(accionModal) {
   accion.value = accionModal;
   alert.value = true;
@@ -168,6 +190,7 @@ function abrir(accionModal) {
 
 function cerrar() {
   alert.value = false;
+  limpiar();
 }
 
 let useVenta = useVentaStore();
@@ -192,24 +215,37 @@ let columns = ref([
   { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
+
+const limpiar = () => {
+  codigo.value = "";
+  cantidad.value = "";
+  valorUnitario.value = "";
+  totalVentas.value = "";
+  fechaInicio.value = "";
+  fechaFin.value = "";
+  currentId.value = null;
+};
 const obtenerTotalVentasEntreFechas = async (fechaInicio, fechaFin) => {
   try {
-  
-    const response = await useVenta.getTotalVentasEntreFechas( fechaInicio, fechaFin );
-    console.log("Total de ventas:", response.ventas);
-        rows.value = response.ventas;
-
+    const response = await useVenta.getTotalVentasEntreFechas(
+      fechaInicio,
+      fechaFin
+    );
+    console.log("Total de ventas:", response.totalVentas);
+    rows.value = response.ventas;
+    totalVentas.value = response.totalVentas;
+     
   } catch (error) {
     console.error("Error al obtener el total de ventas:", error);
   }
-}
+};
 
 const buscarVentasEntreFechas = async () => {
   loading.value = true;
   try {
     if (fechaInicio.value && fechaFin.value) {
       await obtenerTotalVentasEntreFechas(fechaInicio.value, fechaFin.value);
-      
+
       Notify.create("Búsqueda realizada correctamente");
     } else {
       Notify.create("Por favor selecciona una fecha de inicio y fin");
@@ -227,7 +263,8 @@ let listarMaquinas = async () => {
     let response = await useVenta.getVenta();
     rows.value = response.ventas;
     options.value = response.ventas.map((venta) => ({
-      label: venta.codigoProducto.descripcion,
+                  label: `${venta.codigoProducto.descripcion} - ${venta.codigoProducto.codigo}`,
+
       value: venta._id,
     }));
   } catch {
@@ -239,7 +276,9 @@ let listarMaquinas = async () => {
 
 let listarInventario = async () => {
   let response = await useVenta.getInventario();
-  inventarioOptions.value = response.inventarios; // Ajusta esto según tu respuesta
+  inventarioOptions.value = response.inventarios; 
+     totalVentasGenerales.value = response.totalVentasGeneral; 
+     console.log(response.totalVentasGeneral);
 };
 
 const agregarVentas = async () => {
@@ -286,7 +325,7 @@ const editarVenta = async () => {
   try {
     await useVenta.actualizarVenta({
       _id: currentId.value,
-      codigo: codigo.value,
+      codigoProducto: codigo.value,
       cantidad: cantidad.value,
       valorUnitario: valorUnitario.value,
       totalVentas: totalVentas.value,
@@ -402,8 +441,7 @@ onMounted(() => {
 .btn > * {
   border-radius: 30px;
 }
-.fecha{
+.fecha {
   width: 180px;
-  
 }
 </style>

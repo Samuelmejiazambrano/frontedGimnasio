@@ -84,10 +84,19 @@
         <q-btn color="green" icon="search" @click="buscarPago">
           <q-tooltip>Buscar Pago</q-tooltip>
         </q-btn>
-                 <q-input v-model="fechaInicio" label="Fecha de Inicio" outlined class="fecha">
+        <q-input
+          v-model="fechaInicio"
+          label="Fecha de Inicio"
+          outlined
+          class="fecha"
+        >
           <template v-slot:append>
             <q-icon name="event" class="cursor-pointer">
-              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+              <q-popup-proxy
+                ref="qDateProxy"
+                transition-show="scale"
+                transition-hide="scale"
+              >
                 <q-date v-model="fechaInicio" mask="YYYY-MM-DD" />
               </q-popup-proxy>
             </q-icon>
@@ -97,17 +106,21 @@
         <q-input v-model="fechaFin" label="Fecha de Fin" outlined class="fecha">
           <template v-slot:append>
             <q-icon name="event" class="cursor-pointer">
-              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+              <q-popup-proxy
+                ref="qDateProxy"
+                transition-show="scale"
+                transition-hide="scale"
+              >
                 <q-date v-model="fechaFin" mask="YYYY-MM-DD" />
               </q-popup-proxy>
             </q-icon>
           </template>
         </q-input>
-          <q-btn color="green" icon="search" @click="buscarVentasEntreFechas">
-            <q-tooltip
-              >Buscar las ventas en el rango de fechas seleccionado</q-tooltip
-            >
-          </q-btn>
+        <q-btn color="green" icon="search" @click="buscarVentasEntreFechas">
+          <q-tooltip
+            >Buscar las ventas en el rango de fechas seleccionado</q-tooltip
+          >
+        </q-btn>
 
         <q-btn color="green" @click="abrir(1)">
           <q-tooltip>Añadir Producto</q-tooltip>
@@ -134,6 +147,11 @@
         :loading="loading"
         dense
       >
+        <template v-slot:body-cell-createAt="props">
+          <q-td :props="props">
+            {{ moment(props.row.createAt).format("dddd, D MMMM YYYY") }}
+          </q-td>
+        </template>
         <template v-slot:body-cell-estado="props">
           <q-td :props="props">
             <div class="q-pa-md q-gutter-sm"></div>
@@ -166,6 +184,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { Notify } from "quasar";
+import moment from "moment";
+import "moment/locale/es";
 import { usePagoStore } from "../stores/pago.js";
 let loading = ref(false);
 let alert = ref(false);
@@ -202,7 +222,7 @@ let columns = ref([
     field: (row) => (row.idCliente ? row.idCliente.nombre : "N/A"),
   },
   { name: "valor", label: "Valor", align: "center", field: "valor" },
-    { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
+  { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
 
   { name: "estado", label: "Estado", align: "center", field: "estado" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
@@ -215,8 +235,17 @@ function abrir(accionModal) {
 
 function cerrar() {
   alert.value = false;
+  limpiarCajas();
 }
 
+const limpiarCajas = () => {
+  codigo.value = "";
+  idPagos.value = "";
+  idCliente.value = "";
+  valor.value = "";
+  fechaInicio.value = "";
+  fechaFin.value = "";
+};
 const agregarPagos = async () => {
   const idPagosValue = idPagos.value;
   const idPagosSeleccionada = idPagosValue ? idPagosValue.value : null;
@@ -242,13 +271,36 @@ const agregarPagos = async () => {
       });
       cerrar();
       listarPagos();
-       Notify.create({
-        message: "Pago agregada exitosamente",
+      Notify.create({
+        message: "Pago agregado exitosamente",
         color: "green",
       });
     } catch (error) {
-      console.error("Error al agregar venta:", error);
-      Notify.create("Error al agregar venta");
+      console.error("Error al agregar pago:", error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        const errorMessage = error.response.data.message;
+        if (errorMessage.includes("Código ya existe")) {
+          Notify.create({
+            message:
+              "Error: El código ya existe. Por favor, use un código diferente.",
+            color: "red",
+          });
+        } else {
+          Notify.create({
+            message: errorMessage,
+            color: "red",
+          });
+        }
+      } else {
+        Notify.create({
+          message: "Error al agregar el pagos",
+          color: "red",
+        });
+      }
     } finally {
       loading.value = false;
     }
@@ -297,9 +349,9 @@ const cargarDatosPago = (usuario) => {
   abrir(2);
 };
 const editarPagos = async () => {
-  const idPagosValue = idPagos.value; // Suponiendo que idSede.value es el objeto { label, value }
+  const idPagosValue = idPagos.value;
   const idPagosSeleccionada = idPagosValue ? idPagosValue.value : null;
-  const idclienteValue = idCliente.value; // Suponiendo que idSede.value es el objeto { label, value }
+  const idclienteValue = idCliente.value;
   const idclienteSeleccionada = idclienteValue ? idclienteValue.value : null;
   loading.value = true;
 
@@ -307,16 +359,19 @@ const editarPagos = async () => {
     await usePago.actualizarPago({
       _id: currentId.value,
       codigo: codigo.value,
-      plan: idPagosSeleccionada,
       idCliente: idclienteSeleccionada,
+
+      plan: idPagosSeleccionada,
       valor: valor.value,
     });
+    console.log("hola");
+    console.log(idclienteSeleccionada);
     cerrar();
     listarPagos();
-      Notify.create({
-        message: "Pago editada exitosamente",
-        color: "green",
-      });
+    Notify.create({
+      message: "Pago editada exitosamente",
+      color: "green",
+    });
   } catch (error) {
     console.error("Error al editar inventario:", error);
   } finally {
@@ -328,11 +383,11 @@ const desactivarPago = async (pago) => {
   try {
     if (pago && pago._id) {
       await usePago.desactivarPago(pago);
-        Notify.create({
+      Notify.create({
         message: "Pago desactivado exitosamente",
         color: "green",
       });
-      listarPagos(); 
+      listarPagos();
     } else {
       Notify.create("Plan no válido");
     }
@@ -350,7 +405,7 @@ const activarPagos = async (pagos) => {
   try {
     if (pagos && pagos._id) {
       await usePago.activarPago(pagos);
-        Notify.create({
+      Notify.create({
         message: "Pago activado exitosamente",
         color: "green",
       });
@@ -388,10 +443,10 @@ const buscarPago = async () => {
       console.log("hola");
       if (res && res.pagos) {
         rows.value = [res.pagos];
-            Notify.create({
-        message: "Pago encontrada exitosamente",
-        color: "green",
-      });
+        Notify.create({
+          message: "Pago encontrada exitosamente",
+          color: "green",
+        });
       } else {
         Notify.create("No se encontró la pagos");
       }
@@ -408,21 +463,24 @@ const buscarPago = async () => {
 
 const obtenerTotalVentasEntreFechas = async (fechaInicio, fechaFin) => {
   try {
-  
-    const response = await usePago.getTotalVentasEntreFechas( fechaInicio, fechaFin );
+    const response = await usePago.getTotalVentasEntreFechas(
+      fechaInicio,
+      fechaFin
+    );
     console.log("Total de pagos:", response.ventas);
-        rows.value = response.pagos;
-
+    rows.value = response.pagos;
+    console.log("hola");
+    console.log(response.pagos);
   } catch (error) {
     console.error("Error al obtener el total de ventas:", error);
   }
-}
+};
 const buscarVentasEntreFechas = async () => {
   loading.value = true;
   try {
     if (fechaInicio.value && fechaFin.value) {
       await obtenerTotalVentasEntreFechas(fechaInicio.value, fechaFin.value);
-      
+
       Notify.create("Búsqueda realizada correctamente");
     } else {
       Notify.create("Por favor selecciona una fecha de inicio y fin");
@@ -441,10 +499,10 @@ const listarPagosActivos = async () => {
     const res = await usePago.getPagoActivos();
     console.log(res);
     rows.value = res;
-         Notify.create({
-        message: "Pago activos exitosamente",
-        color: "green",
-      });
+    Notify.create({
+      message: "Pago activos exitosamente",
+      color: "green",
+    });
   } catch (error) {
     console.error("Error al listar usuarios activos:", error);
     Notify.create("Error al obtener usuarios activos");
@@ -458,10 +516,10 @@ const listarPagosInactivo = async () => {
   try {
     const res = await usePago.getPagoInactivos();
     rows.value = res;
-        Notify.create({
-        message: "Pago inactivos exitosamente",
-        color: "green",
-      });
+    Notify.create({
+      message: "Pago inactivos exitosamente",
+      color: "green",
+    });
   } catch (error) {
     console.error("Error al listar usuarios activos:", error);
     Notify.create("Error al obtener usuarios activos");
@@ -514,9 +572,8 @@ onMounted(() => {
   border-radius: 8px;
   width: 150vh;
 }
-.fecha{
+.fecha {
   width: 180px;
-  
 }
 /* Ajuste del contenedor de la tabla */
 .sss {

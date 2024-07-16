@@ -66,7 +66,7 @@
           :options="
             usuarios.map((usuario) => ({
               label: usuario.nombre,
-              
+
               value: usuario._id,
             }))
           "
@@ -183,9 +183,10 @@ const listarMantenimientos = async () => {
     maquina.value = responseMaquina.maquinarias;
     const responseUsuario = await useMantenimiento.getUsuario();
     usuarios.value = responseUsuario.usuario;
-   console.log(usuarios);
+    console.log(usuarios);
     options.value = response.mantenimientos.map((mantenimiento) => ({
-      label: mantenimiento.descripcion,
+      label: `${mantenimiento.descripcion} - ${mantenimiento.codigo}`,
+
       value: mantenimiento._id,
     }));
   } catch {
@@ -197,12 +198,12 @@ const listarMantenimientos = async () => {
 const trimInputs = () => {
   descripcion.value = descripcion.value.trim();
   codigo.value = codigo.value.trim();
-     fecha.value= fecha.value.trim();
-      precio.value=precio.value.trim();
+  fecha.value = fecha.value.trim();
+  precio.value = precio.value.trim();
 };
 const agregarMantenimiento = async () => {
   loading.value = true;
-trimInputs()
+  trimInputs();
   const idMaquinaSeleccionada = idMaquina.value ? idMaquina.value.value : null;
   const idUsuarioSeleccionado = responsable.value
     ? responsable.value.value

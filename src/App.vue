@@ -26,7 +26,7 @@
         </q-avatar>
         
         <!-- Mostrar el nombre del usuario -->
-        <div class="user-name" style="margin-left: 35px; color: white; font-size: 20px; margin-top: 10px;">
+        <div class="user-name" style="margin-left: 35px; color: white; font-size: 30px; margin-top: 10px;">
           {{ userName }}
         </div>
 
@@ -146,7 +146,7 @@ const toggleLeftDrawer = () => {
   text-decoration: none;
   font-size: 18px;
   font-weight: bold;
-  margin-right: 40px;
+  margin-right: 60px;
 }
 
 .link q-icon {

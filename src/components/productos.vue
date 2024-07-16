@@ -216,6 +216,8 @@ let listarIngesos = async () => {
     rows.value = r.sedes;
     options.value = r.sedes.map((sedes) => ({
       label: sedes.nombre,
+                  label: `${sedes.nombre} - ${sedes.ciudad}`,
+
       value: sedes._id,
     }));
     console.log(r);
@@ -263,10 +265,10 @@ const trimInputValues = () => {
   nombre.value = nombre.value.trim();
   correo.value = correo.value.trim();
   direccion.value = direccion.value.trim();
-  codigo.value = codigo.value.trim();
+  // codigo.value = codigo.value.trim();
   hora.value = hora.value.trim();
   ciudad.value = ciudad.value.trim();
-  telefono.value = telefono.value.trim();
+  // telefono.value = telefono.value.trim();
 };
 const buscarSede = async () => {
   loading.value = true;

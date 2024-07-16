@@ -85,6 +85,7 @@ export const usePagoStore = defineStore("Venta", () => {
                   "x-token":useUsuario.token,
                 },
               });
+              
             console.log("plan agregado:", res.data);
            
           } catch (error) {
@@ -99,6 +100,9 @@ export const usePagoStore = defineStore("Venta", () => {
                   "x-token":useUsuario.token,
                 },
               });
+              console.log("hola"+usuario);
+              console.log(usuario);
+
             console.log("pago actualizado:", res.data);
            
           } catch (error) {

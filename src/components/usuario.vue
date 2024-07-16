@@ -218,7 +218,7 @@ let listarIngesos = async () => {
     rows.value = r.usuario;
 
     options.value = r.usuario.map((usuarios) => ({
-      label: usuarios.nombre,
+      label:   `${usuarios.nombre} - ${usuarios.rol}`,
       value: usuarios._id,
     }));
     console.log(r);

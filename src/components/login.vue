@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-md" id="login">
+  <div class="q-pa-md" id="login" :loading="loading">
     <div
       class="q-gutter-y-md column"
       id="cont"
@@ -33,20 +33,24 @@
         style="width: 80%"
         @click="loginUser"
         color="primary"
-        label="Iniciar sesión"
         dense
-      />
+      >
+        <template v-if="loading">
+          <q-spinner size="20px" color="white" />
+        </template>
+        <template v-else>
+          Iniciar sesión
+        </template>
+      </q-btn>
       <p>
         ¿No tienes una cuenta?
         <router-link class="link" to="/registro"> Regístrate
         </router-link>
-        
       </p>
-         <p>
-        ¿se te olvido la contrasena?
-        <router-link class="link" to="/reset"> Regístrate
+      <p>
+        ¿Se te olvidó la contraseña?
+        <router-link class="link" to="/reset"> Restablecer
         </router-link>
-        
       </p>
     </div>
   </div>
@@ -57,7 +61,9 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUsuarioStore } from "../stores/usuario.js";
 import { Notify } from "quasar";
+import { QSpinner } from 'quasar';
 
+let loading = ref(false);
 let email = ref("");
 let password = ref("");
 
@@ -65,10 +71,14 @@ const router = useRouter();
 const useUsuario = useUsuarioStore();
 
 const loginUser = async () => {
+  loading.value = true;
+
   if (email.value === "") {
-    Notify.create("Por Favor Ingrese el email correcto");
+    Notify.create("Por favor, ingrese el email correcto");
+    loading.value = false;
   } else if (password.value === "") {
-    Notify.create("Por favor ingrese la contraseña correcta");
+    Notify.create("Por favor, ingrese la contraseña correcta");
+    loading.value = false;
   } else {
     console.log(email.value, password.value);
     try {
@@ -97,6 +107,8 @@ const loginUser = async () => {
           color: 'negative'
         });
       }
+    } finally {
+      loading.value = false;
     }
   }
 };
