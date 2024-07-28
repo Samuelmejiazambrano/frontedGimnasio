@@ -320,11 +320,17 @@ const updatePlanes = async () => {
       color: "green",
     });
   } catch (error) {
-    console.error("Error al actualizar el plan:", error);
-    Notify.create({
-      message: "Error al actualizar el plan",
-      color: "red",
-    });
+   if (error.response && error.response.data && error.response.data.errors) {
+      Notify.create({
+        message: error.response.data.errors[0].msg,
+        color: "red",
+      });
+    } else {
+      Notify.create({
+        message: "Error al añadir plan",
+        color: "red",
+      });
+    }
   } finally {
     loading.value = false;
   }

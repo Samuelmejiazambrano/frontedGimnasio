@@ -119,7 +119,7 @@
           >
             <template v-slot:body-cell-createAt="props">
               <q-td :props="props">
-                {{ moment(props.row.createAt).format("dddd, D MMMM YYYY") }}
+                {{ formatDate(props.row.createAt)}}
               </q-td>
             </template>
             <template v-slot:body-cell-estado="props">
@@ -162,8 +162,20 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useSedeStore } from "../stores/sede.js";
-import moment from "moment";
-import "moment/locale/es";
+import XDate from 'xdate';
+
+const formatDate = (dateString) => {
+  const date = new XDate(dateString);
+  const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const diaSemana = diasSemana[date.getDay()];
+  const dia = date.getDate();
+  const mes = meses[date.getMonth()];
+  const año = date.getFullYear();
+  return `${diaSemana}, ${dia} de ${mes} ${año}`;
+};
+
+
 import { Notify } from "quasar";
 
 let loading = ref(false);

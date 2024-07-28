@@ -1,8 +1,19 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { Notify } from "quasar";
-import moment from "moment";
-import "moment/locale/es";
+import XDate from 'xdate';
+
+const formatDate = (dateString) => {
+  const date = new XDate(dateString);
+  const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const diaSemana = diasSemana[date.getDay()];
+  const dia = date.getDate();
+  const mes = meses[date.getMonth()];
+  const año = date.getFullYear();
+  return `${diaSemana}, ${dia} de ${mes} ${año}`;
+};
+
 import { useClienteStore } from "../stores/cliente.js";
 
 let useCliente = useClienteStore();
@@ -138,11 +149,7 @@ function cargarDatosIngresos(cliente) {
   plan.value = cliente.nombrePlan;
   abrir(2); 
 }
-const formatDate = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return date.toISOString().substr(0, 10);
-};
+
 const editarCliente = async () => {
   loading.value = true;
   try {
@@ -160,7 +167,17 @@ const editarCliente = async () => {
     cerrar();
     listarCliente();
   } catch (error) {
-    console.error("Error al editar cliente:", error);
+  if (error.response && error.response.data && error.response.data.errors) {
+      Notify.create({
+        message: error.response.data.errors[0].msg,
+        color: "red",
+      });
+    } else {
+      Notify.create({
+        message: "Error al añadir plan",
+        color: "red",
+      });
+    }
   } finally {
     loading.value = false;
   }
@@ -274,52 +291,84 @@ const agregarCliente = async () => {
   const namePattern = /^[A-Za-z\s]+$/;
   trimValues();
 
-  try {
-    if (!/^\d{8,}$/.test(cc.value)) {
-      throw new Error("Por favor ingrese la cédula");
-    } else if (!namePattern.test(nombre.value)) {
-      throw new Error("Por favor ingrese el nombre");
-    } else if (fechaIngreso.value == "") {
-      throw new Error("Por favor ingrese la fecha de ingreso");
-    } else if (fechaNac.value == "") {
-      throw new Error("Por favor ingrese la fecha de nacimiento");
-    } else if (direccion.value == "") {
-      throw new Error("Por favor ingrese la dirección");
-    } else if (telefono.value.length !== 10) {
-      throw new Error("Por favor ingrese el teléfono correctamente");
-    } else if (foto.value == "") {
-      throw new Error("Por favor ingrese la foto");
-    } else if (plan.value == "") {
-      throw new Error("Por favor ingrese el plan");
-    } else {
-      await useCliente.postCliente({
-        cc: cc.value,
-        nombre: nombre.value,
-        fechaIngreso: fechaIngreso.value,
-        fechaNac: fechaNac.value,
-        direccion: direccion.value,
-        telefono: telefono.value,
-        foto: foto.value,
-        plan: idPlanSeleccionado,
-      });
-
-      cerrar();
-      listarCliente();
-      Notify.create({
-        message: "Cliente agregado correctamente",
-        color: "green",
-      });
-    }
-  } catch (error) {
-    console.error("Error al agregar cliente:", error);
+  if (!/^\d{8,}$/.test(cc.value)) {
     Notify.create({
-      message: error.message,
+      message: "Por favor ingrese la cédula",
       color: "red",
     });
-  } finally {
-    loading.value = false;
+  } else if (!namePattern.test(nombre.value)) {
+    Notify.create({
+      message: "Por favor ingrese el nombre",
+      color: "red",
+    });
+  } else if (fechaIngreso.value == "") {
+    Notify.create({
+      message: "Por favor ingrese la fecha de ingreso",
+      color: "red",
+    });
+  } else if (fechaNac.value == "") {
+    Notify.create({
+      message: "Por favor ingrese la fecha de nacimiento",
+      color: "red",
+    });
+  } else if (direccion.value == "") {
+    Notify.create({
+      message: "Por favor ingrese la dirección",
+      color: "red",
+    });
+  } else if (telefono.value.length !== 10) {
+    Notify.create({
+      message: "Por favor ingrese el teléfono correctamente",
+      color: "red",
+    });
+  } else if (foto.value == "") {
+    Notify.create({
+      message: "Por favor ingrese la foto",
+      color: "red",
+    });
+  } else if (plan.value == "") {
+    Notify.create({
+      message: "Por favor ingrese el plan",
+      color: "red",
+    });
+  } else {
+    const response = await useCliente.postCliente({
+      cc: cc.value,
+      nombre: nombre.value,
+      fechaIngreso: fechaIngreso.value,
+      fechaNac: fechaNac.value,
+      direccion: direccion.value,
+      telefono: telefono.value,
+      foto: foto.value,
+      plan: idPlanSeleccionado,
+    });
+
+    if (response && response.data) {
+      if (response.data.message && response.data.message.includes("cédula ya existe")) {
+        Notify.create({
+          message: "La cédula ya existe. Por favor ingrese una cédula diferente.",
+          color: "red",
+        });
+      } else {
+        cerrar();
+        listarCliente();
+        Notify.create({
+          message: "Cliente agregado correctamente",
+          color: "green",
+        });
+      }
+    } else {
+      Notify.create({
+        message: "cedula ya existe",
+        color: "red",
+      });
+    }
   }
+
+  loading.value = false;
 };
+
+
 
 
 const handleFileUpload = (event) => {
@@ -646,14 +695,14 @@ onMounted(async () => {
           </q-td>
         </template>
         <template v-slot:body-cell-fechaNac="props">
-          <q-td :props="props">
-            {{ moment(props.row.fechaNac).format("dddd, D MMMM YYYY") }}
-          </q-td>
+         <q-td :props="props">
+    {{ formatDate(props.row.fechaNac) }}
+  </q-td>
         </template>
         <template v-slot:body-cell-fechaIngreso="props">
-          <q-td :props="props">
-            {{ moment(props.row.fechaIngreso).format("dddd, D MMMM YYYY") }}
-          </q-td>
+             <q-td :props="props">
+    {{ formatDate(props.row.fechaIngreso) }}
+  </q-td>
         </template>
         <template v-slot:body-cell-opciones="props">
           <q-td :props="props">
@@ -722,89 +771,92 @@ onMounted(async () => {
                 </q-card>
               </q-dialog>
 
-              <q-dialog
-                v-model="seguimientoDialog"
-                class="seguimiento"
-                persistent
-              >
-                <q-card class="">
-                  <q-card-section
-                    style="background-color: #344860; margin-bottom: 20px"
-                    class="s"
-                  >
-                    <div class="text-h5 text-white text-center nombre">
-                      Seguimientos del Cliente:{{ seguimientoData.nombre }}
-                    </div>
+           <q-dialog v-model="seguimientoDialog" class="seguimiento" persistent>
+  <q-card class="">
+    <q-card-section
+      style="background-color: #344860; margin-bottom: 20px"
+      class="s"
+    >
+      <div class="text-h5 text-white text-center nombre">
+        Seguimientos del Cliente:{{ seguimientoData.nombre }}
+      </div>
 
-                    <img
-                      v-if="seguimientoData.foto"
-                      :src="seguimientoData.foto"
-                      alt="Foto de cliente"
-                      style="
-                        max-width: 40%;
-                        max-height: 120px;
-                        object-fit: cover;
-                        border-radius: 8px;
-                      "
-                    />
-                  </q-card-section>
+      <img
+        v-if="seguimientoData.foto"
+        :src="seguimientoData.foto"
+        alt="Foto de cliente"
+        style="
+          max-width: 40%;
+          max-height: 120px;
+          object-fit: cover;
+          border-radius: 8px;
+        "
+      />
+      <img
+        v-else
+        src="../components/img/icono.png"
+        alt="Foto de cliente por defecto"
+        style="
+          max-width: 40%;
+          max-height: 120px;
+          object-fit: cover;
+          border-radius: 8px;
+        "
+      />
+    </q-card-section>
 
-                  <q-card-section class="listaSeguimiento">
-                    <q-card
-                      v-for="seguimiento in seguimientoData.seguimiento"
-                      :key="seguimiento.fechaIngreso"
-                    >
-                      <q-card-section>
-                        <div>
-                          Fecha de ingreso:
-                          {{
-                            moment(seguimiento.fechaIngreso).format(
-                              "dddd, D MMMM YYYY"
-                            )
-                          }}
-                        </div>
-                        <div>Peso: {{ seguimiento.peso }}</div>
-                        <div>
-                          IMC: {{ seguimiento.imc }}
-                          <p
-                            class="imc"
-                            :style="{
-                              backgroundColor:
-                                seguimiento.imc < 18.5
-                                  ? 'blue'
-                                  : seguimiento.imc < 25
-                                  ? 'green'
-                                  : seguimiento.imc < 30
-                                  ? 'yellow'
-                                  : 'red',
-                              color: 'white',
-                            }"
-                          >
-                            {{ calcularCategoriaIMC(seguimiento.imc) }}
-                          </p>
-                        </div>
-                        <div>Brazo: {{ seguimiento.brazo }}</div>
-                        <div>Cintura: {{ seguimiento.cintura }}</div>
-                        <div>Pie: {{ seguimiento.pie }}</div>
-                        <div>Estatura: {{ seguimiento.estatura }}</div>
-                        <q-btn
-                          @click="
-                            mostrarSeguimientos(seguimiento, seguimientoData)
-                          "
-                          class="editar"
-                          >Editar</q-btn
-                        >
-                      </q-card-section>
-                    </q-card>
-                  </q-card-section>
+    <q-card-section class="listaSeguimiento">
+      <q-card
+        v-for="seguimiento in seguimientoData.seguimiento"
+        :key="seguimiento.fechaIngreso"
+      >
+        <q-card-section>
+          <div>
+            Fecha de ingreso:
+          
+          {{ formatDate(props.row.fechaIngreso) }}
+          </div>
+          <div>Peso: {{ seguimiento.peso }}</div>
+          <div>
+            IMC: {{ seguimiento.imc }}
+            <p
+              class="imc"
+              :style="{
+                backgroundColor:
+                  seguimiento.imc < 18.5
+                    ? 'blue'
+                    : seguimiento.imc < 25
+                    ? 'green'
+                    : seguimiento.imc < 30
+                    ? 'yellow'
+                    : 'red',
+                color: 'white',
+              }"
+            >
+              {{ calcularCategoriaIMC(seguimiento.imc) }}
+            </p>
+          </div>
+          <div>Brazo: {{ seguimiento.brazo }}</div>
+          <div>Cintura: {{ seguimiento.cintura }}</div>
+          <div>Pie: {{ seguimiento.pie }}</div>
+          <div>Estatura: {{ seguimiento.estatura }}</div>
+          <q-btn
+            @click="mostrarSeguimientos(seguimiento, seguimientoData)"
+            class="editar"
+            >Editar</q-btn
+          >
+        </q-card-section>
+      </q-card>
+    </q-card-section>
 
-                  <q-card-actions align="center">
-                    <q-btn color="black" outline @click="cerrarSeguimiento()"
-                      >Cerrar</q-btn
-                    >
-                  </q-card-actions>
-                </q-card>
-              </q-dialog>
+    <q-card-actions align="center">
+      <q-btn color="black" outline @click="cerrarSeguimiento()"
+        >Cerrar</q-btn
+      >
+    </q-card-actions>
+  </q-card>
+</q-dialog>
+
 
               <span role="img" aria-label="Toggle">
                 {{ props.row.estado == 1 ? "❌" : "✅" }}

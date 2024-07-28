@@ -132,8 +132,19 @@
 import { ref, onMounted } from "vue";
 import { useMantenimientoStore } from "../stores/mantenimiento.js";
 import { Notify } from "quasar";
-import moment from "moment";
-import "moment/locale/es";
+import XDate from 'xdate';
+
+const formatDate = (dateString) => {
+  const date = new XDate(dateString);
+  const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const diaSemana = diasSemana[date.getDay()];
+  const dia = date.getDate();
+  const mes = meses[date.getMonth()];
+  const año = date.getFullYear();
+  return `${diaSemana}, ${dia} de ${mes} ${año}`;
+};
+
 let loading = ref(false);
 
 const alert = ref(false);
@@ -313,9 +324,7 @@ const buscarMantenimiento = async () => {
   }
 };
 
-const formatDate = (date) => {
-  return moment(date).format("dddd, D MMMM YYYY");
-};
+
 
 onMounted(() => {
   listarMantenimientos();

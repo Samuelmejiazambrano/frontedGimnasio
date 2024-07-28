@@ -37,7 +37,9 @@
 
       <q-dialog v-model="alert" persistent>
         <q-card class="" style="width: 700px">
-          <q-card-section style="background-color: #344860; margin-bottom: 20px">
+          <q-card-section
+            style="background-color: #344860; margin-bottom: 20px"
+          >
             <div class="text-h6 text-white">
               {{ accion == 1 ? "Agregar Maquina" : "Editar Maquina" }}
             </div>
@@ -61,7 +63,9 @@
             v-model="idSede"
             label="Sede"
             class="q-my-md q-mx-md"
-            :options="sedes.map((sede) => ({ label: sede.nombre, value: sede._id }))"
+            :options="
+              sedes.map((sede) => ({ label: sede.nombre, value: sede._id }))
+            "
           />
           <q-input
             outlined
@@ -84,8 +88,10 @@
               class="text-white"
             >
               {{ accion === 1 ? "Agregar" : "Editar" }}
-             
-              <q-tooltip>{{ accion === 1 ? "Agregar Maquina" : "Editar Maquina" }}</q-tooltip>
+
+              <q-tooltip>{{
+                accion === 1 ? "Agregar Maquina" : "Editar Maquina"
+              }}</q-tooltip>
             </q-btn>
             <q-btn label="Cerrar" color="black" outline @click="cerrar">
               <q-tooltip>Cerrar</q-tooltip>
@@ -105,20 +111,21 @@
         :columns="columns"
         row-key="_id"
         class="rounded-borders"
-         :loading="loading"
+        :loading="loading"
         dense
         style="width: 90%"
       >
         <template v-slot:body-cell-fecha="props">
           <q-td :props="props">
-            {{ moment(props.row.fecha).format("dddd, D MMMM YYYY") }}
+            {{ formatDate(props.row.fecha) }}
           </q-td>
         </template>
         <template v-slot:body-cell-FechaUmantenimiento="props">
           <q-td :props="props">
-            {{ moment(props.row.FechaUmantenimiento).format("dddd, D MMMM YYYY") }}
+            {{ formatDate(props.row.FechaUmantenimiento) }}
           </q-td>
         </template>
+
         <template v-slot:body-cell-estado="props">
           <q-td :props="props">
             <div class="q-pa-md q-gutter-sm"></div>
@@ -129,7 +136,12 @@
         </template>
         <template v-slot:head-top>
           <q-tr>
-            <q-th v-for="column in columns" :key="column.name" :props="props" class="custom-table-header">
+            <q-th
+              v-for="column in columns"
+              :key="column.name"
+              :props="props"
+              class="custom-table-header"
+            >
               {{ column.label }}
             </q-th>
           </q-tr>
@@ -147,7 +159,9 @@
             <template v-slot:loading>
               <q-spinner color="primary" size="1em" />
             </template>
-            <q-tooltip>{{ props.row.estado == 1 ? "Desactivar Maquina" : "Activar Maquina" }}</q-tooltip>
+            <q-tooltip>{{
+              props.row.estado == 1 ? "Desactivar Maquina" : "Activar Maquina"
+            }}</q-tooltip>
           </q-btn>
           <q-td :props="props" class="q-pr-xs"></q-td>
         </template>
@@ -156,12 +170,43 @@
   </div>
 </template>
 
-
 <script setup>
 import { ref, onMounted } from "vue";
 import { Notify } from "quasar";
-import moment from "moment";
-import "moment/locale/es";
+import XDate from "xdate";
+
+const formatDate = (dateString) => {
+  const date = new XDate(dateString);
+  const diasSemana = [
+    "domingo",
+    "lunes",
+    "martes",
+    "miércoles",
+    "jueves",
+    "viernes",
+    "sábado",
+  ];
+  const meses = [
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
+  ];
+  const diaSemana = diasSemana[date.getDay()];
+  const dia = date.getDate();
+  const mes = meses[date.getMonth()];
+  const año = date.getFullYear();
+  return `${diaSemana}, ${dia} de ${mes} ${año}`;
+};
+
 import { useMaquinaStore } from "../stores/maquinaria.js";
 
 const useMaquina = useMaquinaStore();
@@ -169,10 +214,25 @@ const alert = ref(false);
 const rows = ref([]);
 const columns = ref([
   { name: "codigo", label: "Código", align: "center", field: "codigo" },
-  { name: "descripcion", label: "Descripción", align: "center", field: "descripcion" },
+  {
+    name: "descripcion",
+    label: "Descripción",
+    align: "center",
+    field: "descripcion",
+  },
   { name: "fecha", label: "Fecha", align: "center", field: "fecha" },
-  { name: "FechaUmantenimiento", label: "Fecha de Último Mantenimiento", align: "center", field: "FechaUmantenimiento" },
-  { name: "idSede", label: "Sede", align: "center",  field: row => row.idSede.ciudad },
+  {
+    name: "FechaUmantenimiento",
+    label: "Fecha de Último Mantenimiento",
+    align: "center",
+    field: "FechaUmantenimiento",
+  },
+  {
+    name: "idSede",
+    label: "Sede",
+    align: "center",
+    field: (row) => row.idSede.ciudad,
+  },
   { name: "estado", label: "Estado", align: "center", field: "estado" },
   { name: "opciones", label: "Opciones", align: "center", field: "opciones" },
 ]);
@@ -213,39 +273,36 @@ const abrir = (accionModal) => {
 
 const cerrar = () => {
   alert.value = false;
-  limpiarCajas()
+  limpiarCajas();
 };
 
 const listarMaquinas = async () => {
-
   loading.value = true;
-  try{
-   let response = await useMaquina.getMaquina();
-  let maquinarias = response.maquinarias;
-   console.log(response);
-  let responseSedes = await useMaquina.getSede();
-  let sedesList = responseSedes.sedes;
-  sedes.value = sedesList;
+  try {
+    let response = await useMaquina.getMaquina();
+    let maquinarias = response.maquinarias;
+    console.log(response);
+    let responseSedes = await useMaquina.getSede();
+    let sedesList = responseSedes.sedes;
+    sedes.value = sedesList;
 
-  rows.value = maquinarias.map((maquinaria) => {
-    let sede = sedesList.find((s) => s._id === maquinaria.idSede);
-    return {
-      ...maquinaria,
-      nombreSede: sede ? sede.nombre : "N/A",
-    };
-  });
+    rows.value = maquinarias.map((maquinaria) => {
+      let sede = sedesList.find((s) => s._id === maquinaria.idSede);
+      return {
+        ...maquinaria,
+        nombreSede: sede ? sede.nombre : "N/A",
+      };
+    });
 
-  options.value = response.maquinarias.map((maquinaria) => ({
-    label: `${maquinaria.descripcion} - ${maquinaria.codigo}`,
-    value: maquinaria._id,
-  }));
-  }catch{
-  console.log("error");
-  }finally{
-  loading.value=false
+    options.value = response.maquinarias.map((maquinaria) => ({
+      label: `${maquinaria.descripcion} - ${maquinaria.codigo}`,
+      value: maquinaria._id,
+    }));
+  } catch {
+    console.log("error");
+  } finally {
+    loading.value = false;
   }
- 
-  
 };
 
 const buscarMaquinaria = async () => {
@@ -266,11 +323,9 @@ const buscarMaquinaria = async () => {
   } catch (error) {
     console.error("Error al buscar la sede:", error);
     Notify.create("Error al buscar la sede");
-  }finally{
+  } finally {
     loading.value = false;
-
   }
-
 };
 
 onMounted(() => {
@@ -383,15 +438,9 @@ const cargarDatosUsuario = (usuario) => {
   abrir(2);
 };
 
-const formatDate = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return date.toISOString().substr(0, 10);
-};
-
 const editarMaquina = async () => {
-    loading.value = true;
-trimMaquinariaFields()
+  loading.value = true;
+  trimMaquinariaFields();
   const idSedeValue = idSede.value;
   const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
   try {
@@ -407,14 +456,13 @@ trimMaquinariaFields()
     listarMaquinas();
   } catch (error) {
     console.error("Error al editar máquina:", error);
-  }finally{
-      loading.value = false;
-
+  } finally {
+    loading.value = false;
   }
 };
 
 const desactivarMaquina = async (maquinarias) => {
-    loading.value = true;
+  loading.value = true;
 
   try {
     if (maquinarias && maquinarias._id) {
@@ -430,14 +478,13 @@ const desactivarMaquina = async (maquinarias) => {
   } catch (error) {
     console.error("Error al desactivar máquina:", error);
     Notify.create("Error al desactivar máquina");
-  }finally{
-      loading.value = false;
-
+  } finally {
+    loading.value = false;
   }
 };
 
 const activarMaquina = async (maquinaria) => {
-    loading.value = true;
+  loading.value = true;
 
   try {
     if (maquinaria && maquinaria._id) {
@@ -453,14 +500,13 @@ const activarMaquina = async (maquinaria) => {
   } catch (error) {
     console.error("Error al activar máquina:", error);
     Notify.create("Error al activar máquina");
-  }finally{
-      loading.value = false;
-
+  } finally {
+    loading.value = false;
   }
 };
 
 const listarMaquinariaActivos = async () => {
-    loading.value = true;
+  loading.value = true;
 
   try {
     const res = await useMaquina.getmaquinasInactivos();
@@ -472,14 +518,13 @@ const listarMaquinariaActivos = async () => {
   } catch (error) {
     console.error("Error al listar máquinas activas:", error);
     Notify.create("Error al obtener máquinas activas");
-  }finally{
-      loading.value = false;
-
+  } finally {
+    loading.value = false;
   }
 };
 
 const listarMaquinariaInactivo = async () => {
-    loading.value = true;
+  loading.value = true;
 
   try {
     const res = await useMaquina.getmaquinasActivos();
@@ -491,9 +536,8 @@ const listarMaquinariaInactivo = async () => {
   } catch (error) {
     console.error("Error al listar máquinas inactivas:", error);
     Notify.create("Error al obtener máquinas inactivas");
-  }finally{
-      loading.value = false;
-
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -560,6 +604,4 @@ onMounted(() => {
   width: 300px;
   padding: 10px;
 }
-
 </style>
-

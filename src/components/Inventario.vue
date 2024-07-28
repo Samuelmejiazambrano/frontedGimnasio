@@ -102,7 +102,7 @@
         </template>
         <template v-slot:body-cell-createAt="props">
           <q-td :props="props">
-            {{ moment(props.row.createAt).format("dddd, D MMMM YYYY") }}
+            {{ formatDate(props.row.createAt)}}
           </q-td>
         </template>
 
@@ -146,8 +146,19 @@
 import { ref, onMounted } from "vue";
 import { Notify } from "quasar";
 import { useInventarioStore } from "../stores/inventario.js";
-import moment from "moment";
-import "moment/locale/es";
+import XDate from 'xdate';
+
+const formatDate = (dateString) => {
+  const date = new XDate(dateString);
+  const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const diaSemana = diasSemana[date.getDay()];
+  const dia = date.getDate();
+  const mes = meses[date.getMonth()];
+  const año = date.getFullYear();
+  return `${diaSemana}, ${dia} de ${mes} ${año}`;
+};
+
 let useInventario = useInventarioStore();
 
 let rows = ref([]);
@@ -279,7 +290,17 @@ const agregarInventario = async () => {
       cerrarAgregarModal();
       listarInventario();
     } catch (error) {
-      console.error("Error al agregar inventario:", error);
+    if (error.response && error.response.data && error.response.data.errors) {
+      Notify.create({
+        message: error.response.data.errors[0].msg,
+        color: "red",
+      });
+    } else {
+      Notify.create({
+        message: "Error al añadir plan",
+        color: "red",
+      });
+    }
     } finally {
       loadingAgregar.value = false;
     }
@@ -308,7 +329,17 @@ const editarInventario = async () => {
       cerrarAgregarModal();
       listarInventario();
     } catch (error) {
-      console.error("Error al editar inventario:", error);
+     if (error.response && error.response.data && error.response.data.errors) {
+      Notify.create({
+        message: error.response.data.errors[0].msg,
+        color: "red",
+      });
+    } else {
+      Notify.create({
+        message: "Error al añadir plan",
+        color: "red",
+      });
+    }
     } finally {
       loadingEditar.value = false;
     }

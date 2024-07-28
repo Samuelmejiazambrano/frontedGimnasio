@@ -118,8 +118,19 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { Notify } from "quasar";
-import moment from "moment";
-import "moment/locale/es";
+import XDate from 'xdate';
+
+const formatDate = (dateString) => {
+  const date = new XDate(dateString);
+  const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const diaSemana = diasSemana[date.getDay()];
+  const dia = date.getDate();
+  const mes = meses[date.getMonth()];
+  const año = date.getFullYear();
+  return `${diaSemana}, ${dia} de ${mes} ${año}`;
+};
+
 import { useIngresoStore } from "../stores/ingreso.js";
 let loading = ref(false);
 let alert = ref(false);
@@ -207,52 +218,51 @@ let listarMaquinas = async () => {
   }
 };
 const agregarIngreso = async () => {
-  const idSedeValue = idSede.value;
+  loading.value = true;
+
+   const idSedeValue = idSede.value;
   const idSedeSeleccionada = idSedeValue ? idSedeValue.value : null;
   const idclienteValue = idCliente.value;
   const idclienteSeleccionada = idclienteValue ? idclienteValue.value : null;
 
   if (!codigo.value) {
-    Notify.create("Por favor ingrese el código");
+    Notify.create({ message: "Por favor ingrese el código", color: "red" });
+    loading.value = false;
     return;
-  } else if (!idSede.value) {
-    Notify.create("Por favor seleccione una sede");
+  } else if (!idSedeSeleccionada) {
+    Notify.create({ message: "Por favor seleccione una sede", color: "red" });
+    loading.value = false;
     return;
-  } else if (!idCliente.value) {
-    Notify.create("Por favor seleccione un cliente");
+  } else if (!idSedeSeleccionada) {
+    Notify.create({ message: "Por favor seleccione un cliente", color: "red" });
+    loading.value = false;
     return;
   } else {
-    loading.value = true;
     try {
-      await useIngreso.postIngreso({
+      const response =    await useIngreso.postIngreso({
         codigo: codigo.value,
         sede: idSedeSeleccionada,
         cliente: idclienteSeleccionada,
       });
-      Notify.create({
-        message: "Ingreso Agregado",
-        color: "green",
-      });
-      cerrar();
-      listarMaquinas();
+
+      if (response && response.status === 201) {
+        Notify.create({ message: "Ingreso agregado correctamente", color: "green" });
+        cerrar();
+        listarMaquinas();
+      } else if (response && response.status === 400 && errors.data.message === "El código ingresado ya existe") {
+        Notify.create({ message: "El código ingresado ya existe", color: "red" });
+      } else {
+        Notify.create({ message: "El código ingresado ya existe", color: "red" });
+      }
     } catch (error) {
       console.error("Error al agregar ingreso:", error);
-      if (error && error.message && error.message.includes("código duplicado")) {
-        Notify.create({
-          message: "El código ingresado ya existe",
-          color: "red",
-        });
-      } else {
-        Notify.create({
-          message: "Error al agregar ingreso",
-          color: "red",
-        });
-      }
+      Notify.create({ message: "Error al agregar ingreso", color: "red" });
     } finally {
       loading.value = false;
     }
   }
 };
+
 
 
 const editarIngreso = async () => {
@@ -275,7 +285,17 @@ const editarIngreso = async () => {
     cerrar();
     listarMaquinas();
   } catch (error) {
-    console.error("Error al editar ingreso:", error);
+  if (error.response && error.response.data && error.response.data.errors) {
+      Notify.create({
+        message: error.response.data.errors[0].msg,
+        color: "red",
+      });
+    } else {
+      Notify.create({
+        message: "Error al añadir plan",
+        color: "red",
+      });
+    }
   }
   loading.value = false;
 };
@@ -314,9 +334,7 @@ const buscarIngreso = async () => {
   }
 };
 
-const formatDate = (date) => {
-  return moment(date).format("dddd, D MMMM YYYY");
-};
+
 
 onMounted(() => {
   listarMaquinas();

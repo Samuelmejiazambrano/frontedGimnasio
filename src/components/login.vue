@@ -24,11 +24,19 @@
         class="input"
         v-model="password"
         label="Contraseña"
-        type="password"
+        :type="passwordType"
         placeholder="Introduce tu contraseña"
         dense
         outlined
-      />
+        append-icon
+      >
+        <template v-slot:append>
+          <q-icon 
+            :name="passwordType === 'password' ? 'visibility_off' : 'visibility'" 
+            @click="togglePasswordType" 
+          />
+        </template>
+      </q-input>
       <q-btn
         style="width: 80%"
         @click="loginUser"
@@ -66,10 +74,13 @@ import { QSpinner } from 'quasar';
 let loading = ref(false);
 let email = ref("");
 let password = ref("");
+let passwordType = ref('password');
 
 const router = useRouter();
 const useUsuario = useUsuarioStore();
-
+const togglePasswordType = () => {
+  passwordType.value = passwordType.value === 'password' ? 'text' : 'password';
+};
 const loginUser = async () => {
   loading.value = true;
 

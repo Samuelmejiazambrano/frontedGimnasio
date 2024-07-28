@@ -287,31 +287,39 @@ let listarInventario = async () => {
 
 const agregarVentas = async () => {
   if (codigo.value.length <= 3) {
-    Notify.create("por favor ingrese el codigo ");
+    Notify.create("Por favor ingrese un código válido");
   } else if (cantidad.value == "") {
-    Notify.create("por favor ingrese la cantidad");
+    Notify.create("Por favor ingrese la cantidad");
   } else {
     loading.value = true;
     try {
-      await useVenta.agregarVenta({
+      const response = await useVenta.agregarVenta({
         codigoProducto: codigo.value,
         cantidad: cantidad.value,
         totalVentas: totalVentas.value,
       });
+
       cerrar();
       listarMaquinas();
+
       Notify.create({
         message: "Venta agregada",
         color: "green",
       });
     } catch (error) {
       console.error("Error al agregar venta:", error);
-      Notify.create("Error al agregar venta");
+      
+      const errorMessage = error.response?.data?.error || "Error al agregar venta";
+      Notify.create({
+        message: errorMessage,
+        color: "red",
+      });
     } finally {
       loading.value = false;
     }
   }
 };
+
 
 const cargarDatosVenta = (venta) => {
   currentId.value = venta._id;
