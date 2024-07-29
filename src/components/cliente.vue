@@ -359,7 +359,7 @@ const agregarCliente = async () => {
       }
     } else {
       Notify.create({
-        message: "cedula ya existe",
+        message: "error",
         color: "red",
       });
     }

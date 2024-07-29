@@ -4,8 +4,8 @@
       <h4>Cumpleañeros del Mes</h4>
       <ul>
         <li v-for="cliente in clientesCumple" :key="cliente._id">
-          {{ cliente.nombre }} - 
-          <span class="fecha-cumple">{{ formatFecha(cliente.fechaNac) }}</span>
+          {{ cliente.nombre }} -
+              <span class="fecha-cumple">{{ formatDate(cliente.fechaNac) }}</span>
         </li>
       </ul>
     </section>
@@ -56,7 +56,18 @@
 import { ref, onMounted } from "vue";
 import { useClienteStore } from "../stores/cliente.js";
 import { format } from 'date-fns';
+import XDate from 'xdate';
 
+const formatDate = (dateString) => {
+  const date = new XDate(dateString);
+  const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const diaSemana = diasSemana[date.getDay()];
+  const dia = date.getDate();
+  const mes = meses[date.getMonth()];
+  const año = date.getFullYear();
+  return `${diaSemana}, ${dia} de ${mes} ${año}`;
+};
 const useCliente = useClienteStore();
 const clientesCumple = ref([]);
 
