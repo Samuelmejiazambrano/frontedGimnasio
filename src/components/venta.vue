@@ -52,7 +52,10 @@
             >Buscar las ventas en el rango de fechas seleccionado</q-tooltip
           >
         </q-btn>
-
+ <q-btn color="green" icon="search" @click="listarMaquinas">
+ Listar Venta
+          <q-tooltip>Listar Venta</q-tooltip>
+        </q-btn>
         <q-btn color="green" @click="abrir(1)">
           Añadir Venta
           <q-tooltip>Añadir un nuevo producto a la lista de ventas</q-tooltip>
@@ -128,7 +131,7 @@
         </template>
         <template v-slot:body-cell-createAt="props">
           <q-td :props="props">
-            {{ moment(props.row.createAt).format("dddd, D MMMM YYYY") }}
+            {{ formatDate(props.row.createAt)}}
           </q-td>
         </template>
         <template v-slot:head-top>
@@ -166,6 +169,18 @@ import { ref, onMounted } from "vue";
 import { Notify } from "quasar";
 import moment from "moment";
 import "moment/locale/es";
+import XDate from 'xdate';
+
+const formatDate = (dateString) => {
+  const date = new XDate(dateString);
+  const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const diaSemana = diasSemana[date.getDay()];
+  const dia = date.getDate();
+  const mes = meses[date.getMonth()];
+  const año = date.getFullYear();
+  return `${diaSemana}, ${dia} de ${mes} ${año}`;
+};
 import { useVentaStore } from "../stores/venta.js";
 let loading = ref(false);
 let alert = ref(false);
@@ -249,7 +264,10 @@ const buscarVentasEntreFechas = async () => {
     if (fechaInicio.value && fechaFin.value) {
       await obtenerTotalVentasEntreFechas(fechaInicio.value, fechaFin.value);
 
-      Notify.create("Búsqueda realizada correctamente");
+ Notify.create({
+        message: "Busqueda realizada correctamente",
+        color: "green",
+      });
     } else {
       Notify.create("Por favor selecciona una fecha de inicio y fin");
     }
@@ -357,10 +375,7 @@ const editarVenta = async () => {
   }
 };
 
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
-};
+
 const buscarVenta = async () => {
   loading.value = true;
 

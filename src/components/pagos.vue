@@ -121,12 +121,7 @@
             >Buscar las ventas en el rango de fechas seleccionado</q-tooltip
           >
         </q-btn>
-         <q-btn color="green"  @click="listarPagos()">
-         Listar Pagos
-          <q-tooltip
-            >Listar Pagos</q-tooltip
-          >
-        </q-btn>
+         
 
         <q-btn color="green" @click="abrir(1)">
           <q-tooltip>Añadir Producto</q-tooltip>

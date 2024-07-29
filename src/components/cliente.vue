@@ -500,6 +500,9 @@ const togglePlanStatus = async (cliente) => {
     console.error("Error al cambiar el estado del plan:", error);
   }
 };
+function formatIMC(imc) {
+  return parseFloat(imc).toFixed(2);
+}
 async function actualizarSeguimientos() {
   loading.value = true;
 
@@ -818,7 +821,7 @@ onMounted(async () => {
           </div>
           <div>Peso: {{ seguimiento.peso }}</div>
           <div>
-            IMC: {{ seguimiento.imc }}
+            IMC: {{ formatIMC(seguimiento.imc) }}
             <p
               class="imc"
               :style="{
@@ -1037,9 +1040,7 @@ width: 250px;
 }
 /*  */
 
-.sam {
-  min-width: 150px; /* Ancho mínimo para el botón de añadir cliente */
-}
+
 .plan{
   margin-left: 20px;
 }

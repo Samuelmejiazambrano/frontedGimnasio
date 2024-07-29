@@ -64,6 +64,7 @@ const obtenerCumpleanos = async () => {
   try {
     const clientes = await useCliente.getCumpleanos();
     clientesCumple.value = clientes;
+    console.log(clientesCumple);
   } catch (error) {
     console.error("Error al obtener los cumpleaños:", error);
   }
