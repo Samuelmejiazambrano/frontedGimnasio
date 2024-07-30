@@ -20,23 +20,24 @@
         dense
         outlined
       />
-      <q-input
-        class="input"
-        v-model="password"
-        label="Contraseña"
-        :type="passwordType"
-        placeholder="Introduce tu contraseña"
-        dense
-        outlined
-        append-icon
-      >
-        <template v-slot:append>
-          <q-icon 
-            :name="passwordType === 'password' ? 'visibility_off' : 'visibility'" 
-            @click="togglePasswordType" 
-          />
-        </template>
-      </q-input>
+<q-input
+  class="input"
+  v-model="password"
+  label="Contraseña"
+  :type="passwordType"
+  placeholder="Introduce tu contraseña"
+  dense
+  outlined
+>
+  <template v-slot:append>
+    <q-icon 
+      :name="passwordType === 'password' ? 'visibility' : 'visibility_off'" 
+      @click="togglePasswordType" 
+      class="cursor-pointer"
+    />
+  </template>
+</q-input>
+
       <q-btn
         style="width: 80%"
         @click="loginUser"

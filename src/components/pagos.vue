@@ -234,7 +234,7 @@ let columns = ref([
     align: "center",
     field: (row) => (row.idCliente ? row.idCliente.nombre : "N/A"),
   },
-  { name: "valor", label: "Valor", align: "center", field: "valor" },
+  { name: "valor", label: "Valor", align: "center",  field: (row) => formatNumber(row.valor) },
   { name: "createAt", label: "Creado en", align: "center", field: "createAt" },
 
   { name: "estado", label: "Estado", align: "center", field: "estado" },
@@ -344,6 +344,8 @@ let listarPagos = async () => {
       label: pago.codigo,
       value: pago._id,
     }));
+     fechaFin.value=""
+    fechaInicio.value=""
   } catch (error) {
     console.error("Error al obtener los pagos:", error);
     Notify.create("Error al obtener los pagos");
@@ -400,6 +402,9 @@ const editarPagos = async () => {
   } finally {
     loading.value = false;
   }
+};
+const formatNumber = (number) => {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 const desactivarPago = async (pago) => {
   loading.value = true;

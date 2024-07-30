@@ -54,12 +54,14 @@
             class="q-my-md q-mx-md"
             type="text"
           />
-          <q-input
+          <q-select
             outlined
             v-model="sede"
             label="Sede"
             class="q-my-md q-mx-md"
-            type="text"
+            :options="inventarioOptions"
+            option-label="ciudad"
+            option-value="_id"
           />
           <q-input
             outlined
@@ -92,12 +94,13 @@
             option-value="value"
           />
           <q-input
-            outlined
-            v-model="password"
-            label="Password"
-            class="q-my-md q-mx-md"
-            type="password"
-          />
+      v-if="accion === 1"  
+      outlined
+      v-model="password"
+      label="Contraseña"
+      class="q-my-md q-mx-md"
+      type="password"
+    />
           <q-card-actions align="right">
             <q-btn
               @click="accion === 1 ? agregarUsuario() : updateUsuario()"
@@ -168,6 +171,8 @@ let telefono = ref("");
 let rol = ref("");
 let options = ref([]);
 let selectedSedeId = ref(null);
+let inventarioOptions = ref([]);
+
 let roles = ref([
   { label: "Admin", value: "admin" },
   { label: "Instructor", value: "instructor" },
@@ -182,7 +187,8 @@ let useUsuario = useUsuarioStore();
 
 let rows = ref([]);
 let columns = ref([
-  { name: "sede", label: "Sede", align: "center", field: "sede" },
+  { name: "sede", label: "Sede", align: "center",    field: (row) => (row.sede && row.sede.ciudad ? row.sede.ciudad : "N/A")
+},
   { name: "nombre", label: "Nombre", align: "center", field: "nombre" },
   { name: "email", label: "Email", align: "center", field: "email" },
   {
@@ -209,6 +215,17 @@ const seleccionarAccion = async () => {
     await listarUsuariosInactivo();
   }
 };
+const limpiarCampos = () => {
+  nombre.value = "";
+  sede.value = "";
+  email.value = "";
+  direccion.value = "";
+  telefono.value = "";
+  rol.value = "";
+  password.value = "";
+  currentId.value = null;
+};
+
 let listarIngesos = async () => {
     loading.value = true;
 
@@ -238,9 +255,15 @@ function abrir(accionModal) {
   accion.value = accionModal;
   alert.value = true;
 }
-
+let listarSede = async () => {
+  let response = await useUsuario.getSede();
+  inventarioOptions.value = response.sedes; 
+  console.log(response);
+   
+};
 function cerrar() {
   alert.value = false;
+  limpiarCampos()
 }
 const agregarUsuario = async () => {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -253,8 +276,10 @@ const agregarUsuario = async () => {
     Notify.create("por favor ingrese el Email");
   } else if (direccion.value == "") {
     Notify.create("por favor ingrese la direccion");
+  } else if (telefono.value== "") {
+    Notify.create("por favor ingrese el telefono ");
   } else if (telefono.value.length !== 10) {
-    Notify.create("por favor ingrese el telefono");
+    Notify.create("por favor ingrese el telefono  con digitos igual a 10 digitos");
   } else if (rol.value == "") {
     Notify.create("por favor ingrese el rol ");
   } else if (password.value == "") {
@@ -277,7 +302,15 @@ const agregarUsuario = async () => {
       cerrar();
       listarIngesos();
     } catch (error) {
-      console.error("Error al agregar inventario:", error);
+      console.error("Error al agregar el usuario:", error);
+          if (error.response && error.response.data && error.response.data.errors) {
+        Notify.create({
+          message: error.response.data.errors[0].msg,
+          color: "red",
+        });
+      } else {
+        Notify.create("Error al agregar el usuario");
+      }
     }
   }
 };
@@ -429,6 +462,7 @@ loading.value=true
 };
 onMounted(() => {
   listarIngesos();
+  listarSede();
 });
 </script>
 <style scoped>

@@ -1,12 +1,35 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import moment from "moment";
+import "moment/locale/es";
 import { Notify } from "quasar";
-import XDate from 'xdate';
+import XDate from "xdate";
 
 const formatDate = (dateString) => {
   const date = new XDate(dateString);
-  const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
-  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const diasSemana = [
+    "domingo",
+    "lunes",
+    "martes",
+    "miércoles",
+    "jueves",
+    "viernes",
+    "sábado",
+  ];
+  const meses = [
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
+  ];
   const diaSemana = diasSemana[date.getDay()];
   const dia = date.getDate();
   const mes = meses[date.getMonth()];
@@ -86,7 +109,6 @@ let clienteNoEncontrado = ref(false);
 function abrir(accionModal) {
   accion.value = accionModal;
   alert.value = true;
-  
 }
 
 let currentSeguimientoId = ref(null);
@@ -113,7 +135,7 @@ function mostrarSeguimientos(seguimiento, cliente) {
 
 function cerrar() {
   alert.value = false;
-    cc.value = "";
+  cc.value = "";
   nombre.value = "";
   fechaIngreso.value = "";
   fechaNac.value = "";
@@ -137,17 +159,24 @@ function trimValues() {
   direccion.value = direccion.value.trim();
   telefono.value = telefono.value.trim();
 }
+const formatDates = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toISOString().substr(0, 10);
+};
+
 function cargarDatosIngresos(cliente) {
   currentId.value = cliente._id;
   cc.value = cliente.cc;
   nombre.value = cliente.nombre;
-  fechaIngreso.value = formatDate(cliente.fechaIngreso);
-  fechaNac.value =formatDate( cliente.fechaNac);
+  fechaIngreso.value = formatDates(cliente.fechaIngreso);
+  fechaNac.value = formatDates(cliente.fechaNac);
   direccion.value = cliente.direccion;
   telefono.value = cliente.telefono;
   foto.value = cliente.foto;
   plan.value = cliente.nombrePlan;
-  abrir(2); 
+  console.log(formatDates(cliente.fechaIngreso));
+  abrir(2);
 }
 
 const editarCliente = async () => {
@@ -167,14 +196,14 @@ const editarCliente = async () => {
     cerrar();
     listarCliente();
   } catch (error) {
-  if (error.response && error.response.data && error.response.data.errors) {
+    if (error.response && error.response.data && error.response.data.errors) {
       Notify.create({
         message: error.response.data.errors[0].msg,
         color: "red",
       });
     } else {
       Notify.create({
-        message: "Error al añadir plan",
+        message: "Error al añadir cliente",
         color: "red",
       });
     }
@@ -344,9 +373,13 @@ const agregarCliente = async () => {
     });
 
     if (response && response.data) {
-      if (response.data.message && response.data.message.includes("cédula ya existe")) {
+      if (
+        response.data.message &&
+        response.data.message.includes("cédula ya existe")
+      ) {
         Notify.create({
-          message: "La cédula ya existe. Por favor ingrese una cédula diferente.",
+          message:
+            "La cédula ya existe. Por favor ingrese una cédula diferente.",
           color: "red",
         });
       } else {
@@ -367,9 +400,6 @@ const agregarCliente = async () => {
 
   loading.value = false;
 };
-
-
-
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
@@ -415,7 +445,7 @@ const handleFileUpload = (event) => {
 
 async function agregarSeguimiento() {
   loading.value = true;
-   trimValues()
+  trimValues();
   try {
     let seguimientoData = {
       fechaIngreso: new Date(),
@@ -620,19 +650,17 @@ onMounted(async () => {
           @change="handleFileUpload"
         />
 
-     <q-select
-         
-        v-model="plan"
-        :options="
-          plane.map((planes) => ({
-            label: planes.descripcion,
-            value: planes._id,
-          }))
-        "
-        label="Seleccionar Plan"
-                class="q-mr-md plan"
-
-      />
+        <q-select
+          v-model="plan"
+          :options="
+            plane.map((planes) => ({
+              label: planes.descripcion,
+              value: planes._id,
+            }))
+          "
+          label="Seleccionar Plan"
+          class="q-mr-md plan"
+        />
         <q-card-actions align="right">
           <q-btn
             @click="accion === 1 ? agregarCliente() : editarCliente()"
@@ -646,7 +674,6 @@ onMounted(async () => {
       </q-card>
     </q-dialog>
 
-   
     <div class="search">
       <q-select
         v-model="selectedClientId"
@@ -659,8 +686,12 @@ onMounted(async () => {
         label="Seleccionar Cliente"
         class="q-mr-md select"
       />
-      <q-btn @click="buscarCliente" color="primary"           icon="search"
- class="q-mr-md" />
+      <q-btn
+        @click="buscarCliente"
+        color="primary"
+        icon="search"
+        class="q-mr-md"
+      />
 
       <q-select
         v-model="selectedPlan"
@@ -671,11 +702,14 @@ onMounted(async () => {
           }))
         "
         label="Seleccionar Plan"
-                class="q-mr-md select"
-
+        class="q-mr-md select"
       />
-      <q-btn @click="listarClientesPorPlan" color="primary"           icon="search"
- class="q-mr-md" />
+      <q-btn
+        @click="listarClientesPorPlan"
+        color="primary"
+        icon="search"
+        class="q-mr-md"
+      />
 
       <q-btn color="green" class="sam" @click="abrir(1)">Añadir Cliente</q-btn>
     </div>
@@ -698,14 +732,14 @@ onMounted(async () => {
           </q-td>
         </template>
         <template v-slot:body-cell-fechaNac="props">
-         <q-td :props="props">
-    {{ formatDate(props.row.fechaNac) }}
-  </q-td>
+          <q-td :props="props">
+            {{ formatDate(props.row.fechaNac) }}
+          </q-td>
         </template>
         <template v-slot:body-cell-fechaIngreso="props">
-             <q-td :props="props">
-    {{ formatDate(props.row.fechaIngreso) }}
-  </q-td>
+          <q-td :props="props">
+            {{ formatDate(props.row.fechaIngreso) }}
+          </q-td>
         </template>
         <template v-slot:body-cell-opciones="props">
           <q-td :props="props">
@@ -774,92 +808,100 @@ onMounted(async () => {
                 </q-card>
               </q-dialog>
 
-           <q-dialog v-model="seguimientoDialog" class="seguimiento" persistent>
-  <q-card class="">
-    <q-card-section
-      style="background-color: #344860; margin-bottom: 20px"
-      class="s"
-    >
-      <div class="text-h5 text-white text-center nombre">
-        Seguimientos del Cliente:{{ seguimientoData.nombre }}
-      </div>
+              <q-dialog
+                v-model="seguimientoDialog"
+                class="seguimiento"
+                persistent
+              >
+                <q-card class="">
+                  <q-card-section
+                    style="background-color: #344860; margin-bottom: 20px"
+                    class="s"
+                  >
+                    <div class="text-h5 text-white text-center nombre">
+                      Seguimientos del Cliente:{{ seguimientoData.nombre }}
+                    </div>
 
-      <img
-        v-if="seguimientoData.foto"
-        :src="seguimientoData.foto"
-        alt="Foto de cliente"
-        style="
-          max-width: 40%;
-          max-height: 120px;
-          object-fit: cover;
-          border-radius: 8px;
-        "
-      />
-      <img
-        v-else
-        src="../components/img/icono.png"
-        alt="Foto de cliente por defecto"
-        style="
-          max-width: 40%;
-          max-height: 120px;
-          object-fit: cover;
-          border-radius: 8px;
-        "
-      />
-    </q-card-section>
+                    <img
+                      v-if="seguimientoData.foto"
+                      :src="seguimientoData.foto"
+                      alt="Foto de cliente"
+                      style="
+                        max-width: 40%;
+                        max-height: 120px;
+                        object-fit: cover;
+                        border-radius: 8px;
+                      "
+                    />
+                    <img
+                      v-else
+                      src="../components/img/icono.png"
+                      alt="Foto de cliente por defecto"
+                      style="
+                        max-width: 40%;
+                        max-height: 120px;
+                        object-fit: cover;
+                        border-radius: 8px;
+                      "
+                    />
+                    <q-btn style="height:10px;width:20px;margin-left:10px;border-radius:10px;background-color:red" color="black" outline @click="cerrarSeguimiento"
+                      >x</q-btn
+                    >
+                  </q-card-section>
 
-    <q-card-section class="listaSeguimiento">
-      <q-card
-        v-for="seguimiento in seguimientoData.seguimiento"
-        :key="seguimiento.fechaIngreso"
-      >
-        <q-card-section>
-          <div>
-            Fecha de ingreso:
-          
-          {{ formatDate(props.row.fechaIngreso) }}
-          </div>
-          <div>Peso: {{ seguimiento.peso }}</div>
-          <div>
-            IMC: {{ formatIMC(seguimiento.imc) }}
-            <p
-              class="imc"
-              :style="{
-                backgroundColor:
-                  seguimiento.imc < 18.5
-                    ? 'blue'
-                    : seguimiento.imc < 25
-                    ? 'green'
-                    : seguimiento.imc < 30
-                    ? 'yellow'
-                    : 'red',
-                color: 'white',
-              }"
-            >
-              {{ calcularCategoriaIMC(seguimiento.imc) }}
-            </p>
-          </div>
-          <div>Brazo: {{ seguimiento.brazo }}</div>
-          <div>Cintura: {{ seguimiento.cintura }}</div>
-          <div>Pie: {{ seguimiento.pie }}</div>
-          <div>Estatura: {{ seguimiento.estatura }}</div>
-          <q-btn
-            @click="mostrarSeguimientos(seguimiento, seguimientoData)"
-            class="editar"
-            >Editar</q-btn
-          >
-        </q-card-section>
-      </q-card>
-    </q-card-section>
+                  <q-card-section class="listaSeguimiento">
+                    <q-card
+                      v-for="seguimiento in seguimientoData.seguimiento"
+                      :key="seguimiento.fechaIngreso"
+                    >
+                      <q-card-section>
+                        <div>
+                          Fecha de ingreso:
 
-    <q-card-actions align="center">
-      <q-btn color="black" outline @click="cerrarSeguimiento()"
-        >Cerrar</q-btn
-      >
-    </q-card-actions>
-  </q-card>
-</q-dialog>
+                          {{ formatDate(props.row.fechaIngreso) }}
+                        </div>
+                        <div>Peso: {{ seguimiento.peso }}</div>
+                        <div>
+                          IMC: {{ formatIMC(seguimiento.imc) }}
+                          <p
+                            class="imc"
+                            :style="{
+                              backgroundColor:
+                                seguimiento.imc < 18.5
+                                  ? 'blue'
+                                  : seguimiento.imc < 25
+                                  ? 'green'
+                                  : seguimiento.imc < 30
+                                  ? 'yellow'
+                                  : 'red',
+                              color: 'white',
+                            }"
+                          >
+                            {{ calcularCategoriaIMC(seguimiento.imc) }}
+                          </p>
+                        </div>
+                        <div>Brazo: {{ seguimiento.brazo }}</div>
+                        <div>Cintura: {{ seguimiento.cintura }}</div>
+                        <div>Pie: {{ seguimiento.pie }}</div>
+                        <div>Estatura: {{ seguimiento.estatura }}</div>
+                        <q-btn
+                          @click="
+                            mostrarSeguimientos(seguimiento, seguimientoData)
+                          "
+                          class="editar"
+                          >Editar</q-btn
+                        >
+                      </q-card-section>
+                    </q-card>
+                  </q-card-section>
 
+                  <q-card-actions align="center">
+                    <q-btn color="black" outline @click="cerrarSeguimiento()"
+                      >Cerrar</q-btn
+                    >
+                  </q-card-actions>
+                </q-card>
+              </q-dialog>
 
               <span role="img" aria-label="Toggle">
                 {{ props.row.estado == 1 ? "❌" : "✅" }}
@@ -971,9 +1013,6 @@ onMounted(async () => {
   margin-bottom: 10px; /* Ajuste para el margen inferior */
 }
 
-
-
-
 .imc {
   padding: 5px;
   width: 100px;
@@ -1034,14 +1073,12 @@ onMounted(async () => {
   width: 100%;
   padding: 20px 30px;
 }
-.select{
-width: 250px;
-
+.select {
+  width: 250px;
 }
 /*  */
 
-
-.plan{
+.plan {
   margin-left: 20px;
 }
 .search > * {

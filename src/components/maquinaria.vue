@@ -432,12 +432,17 @@ const cargarDatosUsuario = (usuario) => {
   descripcion.value = usuario.descripcion;
   codigo.value = usuario.codigo;
   idSede.value = usuario.idSede.ciudad;
-  fecha.value = formatDate(usuario.fecha);
-  FechaUmantenimiento.value = formatDate(usuario.FechaUmantenimiento);
+  fecha.value = formatDates(usuario.fecha);
+  FechaUmantenimiento.value = formatDates(usuario.FechaUmantenimiento);
 
   abrir(2);
 };
 
+const formatDates = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toISOString().substr(0, 10);
+};
 const editarMaquina = async () => {
   loading.value = true;
   trimMaquinariaFields();

@@ -290,6 +290,9 @@ let listarMaquinas = async () => {
     }));
       totalVentasGenerales.value = response.totalVentasGeneral; 
      console.log(totalVentasGenerales);
+     fechaFin.value=""
+    fechaInicio.value=""
+
   } catch {
     console.log("error");
   } finally {
@@ -345,8 +348,8 @@ const cargarDatosVenta = (venta) => {
   cantidad.value = venta.cantidad;
   valorUnitario.value = venta.valorUnitario;
   totalVentas.value = venta.totalVentas;
-  fechaInicio.value = formatDate(venta.fechaInicio);
-  fechaFin.value = formatDate(venta.fechaFin);
+  // fechaInicio.value = formatDate(venta.fechaInicio);
+  // fechaFin.value = formatDate(venta.fechaFin);
   abrir(2);
 };
 
@@ -370,6 +373,11 @@ const editarVenta = async () => {
     listarMaquinas();
   } catch (error) {
     console.error("Error al editar venta:", error);
+     const errorMessage = error.response?.data?.error || "Error al agregar venta";
+      Notify.create({
+        message: errorMessage,
+        color: "red",
+      });
   } finally {
     loading.value = false;
   }

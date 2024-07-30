@@ -5,6 +5,20 @@ import { ref } from "vue";
 export const useUsuarioStore = defineStore("usuario", () => {
   let token = ref( "");
   let usuario =ref({})
+  let getSede = async () => {
+    try {
+        let res = await axios.get("/sede",{
+          headers: {
+            "x-token":token.value,
+          },
+        });
+        console.log(res);
+        return res.data;
+    } catch (error) {
+        console.log(error);
+        return error;
+    }
+};
   let getUsuario = async () => {
     try {
       let res = await axios.get("/usuario",{
@@ -147,7 +161,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
     activarUsuarios,
     UpdateUsuarios,
     login,
-    token,usuario,clearSession,getUsuarioActivos,getUsuarioInactivos,getusuarioID
+    token,usuario,clearSession,getUsuarioActivos,getUsuarioInactivos,getusuarioID,getSede
   };
 },{
 
